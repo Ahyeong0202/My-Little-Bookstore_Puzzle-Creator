@@ -1,0 +1,13 @@
+# Colab에서 실행
+from google.colab import files
+
+# integrated_difficulty.csv 다운로드
+files.download('data/integrated_difficulty.csv')
+
+# tblStage_500.xlsx 다운로드  
+files.download('data/tblStage_500.xlsx')
+
+# JSON 파일들은 zip으로
+import shutil
+shutil.make_archive('levels', 'zip', 'data/levels')
+files.download('levels.zip')
