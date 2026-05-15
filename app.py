@@ -139,6 +139,27 @@ div[data-testid="stTabs"] button {{ font-size: 14px; }}
     border-radius: 6px;
 }}
 
+/* ── 다운로드 버튼 */
+[data-testid="stDownloadButton"] button {{
+    background: {T["bg3"]} !important;
+    color: {T["text"]} !important;
+    border: 1px solid {T["border"]} !important;
+}}
+[data-testid="stDownloadButton"] button:hover {{
+    background: {T["bg2"]} !important;
+    border-color: {T["accent"]} !important;
+}}
+
+/* ── 일반 버튼 */
+[data-testid="stButton"] button {{
+    background: {T["bg3"]} !important;
+    color: {T["text"]} !important;
+    border: 1px solid {T["border"]} !important;
+}}
+[data-testid="stButton"] button:hover {{
+    border-color: {T["accent"]} !important;
+}}
+
 /* ── 구분선 */
 hr {{ border-color: {T["border"]}; }}
 
