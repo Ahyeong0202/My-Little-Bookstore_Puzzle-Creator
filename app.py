@@ -802,9 +802,15 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                     for x in range(X):
                         tile=tiles[y][x]; tt=tile.get('TileType',0)
                         name=TILETYPE.get(tt,'Normal')
-                        if name=='Blank': continue
                         cx,cy=hex_to_pixel(y,x,hex_size)
                         hx,hy=make_hex_path(cx,cy,hex_size*0.92)
+                        if name=='Blank':
+                            # 자리만 유지, 투명하게 렌더링
+                            fig.add_trace(go.Scatter(x=hx,y=hy,fill='toself',
+                                fillcolor='rgba(0,0,0,0)',
+                                line=dict(color='rgba(0,0,0,0)',width=0),
+                                mode='lines',hoverinfo='skip',showlegend=False))
+                            continue
                         fig.add_trace(go.Scatter(x=hx,y=hy,fill='toself',
                             fillcolor=HEX_COLORS.get(name,'#CCC'),
                             line=dict(color='white',width=1.5),
@@ -984,8 +990,19 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                     hx, hy = make_hex_path(cx, cy, hs * 0.92)
 
                     is_sel = (y == sel_y and x == sel_x)
-                    fill   = HEX_COLORS.get(name, '#CCC')
-                    border_color = '#FFD700' if is_sel else ('#555' if name=='Blank' else 'white')
+
+                    if name == 'Blank' and not is_sel:
+                        # 투명하게 자리만 유지 (선택된 Blank는 금색으로 표시)
+                        fig_e.add_trace(go.Scatter(
+                            x=hx, y=hy, fill='toself',
+                            fillcolor='rgba(0,0,0,0)',
+                            line=dict(color='rgba(0,0,0,0)', width=0),
+                            mode='lines', hoverinfo='skip', showlegend=False
+                        ))
+                        continue
+
+                    fill         = HEX_COLORS.get(name, '#CCC') if name != 'Blank' else 'rgba(80,80,80,0.3)'
+                    border_color = '#FFD700' if is_sel else 'white'
                     border_w     = 4 if is_sel else 1.5
 
                     fig_e.add_trace(go.Scatter(
@@ -997,7 +1014,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
 
                     # 셀 라벨
                     if name == 'Blank':
-                        label = ''
+                        label = 'Bl'
                     elif name in ('Stack', 'StackLock', 'Ice') and 'Stacks' in tile:
                         stacks = tile['Stacks']
                         # 칩 색 이니셜 표시
