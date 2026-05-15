@@ -574,49 +574,72 @@ elif page == "📊 2. 난이도 분석":
     intg   = st.session_state.intg_df
     market = st.session_state.market_df
 
-    # ── 상단: 비교 차트
+    # ── 가중치 슬라이더 (차트 위)
+    st.subheader("⚖️ 판:게임진행 가중치 조정")
+    if intg is not None:
+        w_b = st.slider("판 모양 가중치 (%)", 0, 100, st.session_state.w_board, key="sl_wboard")
+        w_g = 100 - w_b
+        st.session_state.w_board    = w_b
+        st.session_state.w_gameplay = w_g
+        st.caption(f"판 모양 **{w_b}%** : 게임 진행 **{w_g}%**")
+    else:
+        w_b = st.session_state.w_board
+        w_g = st.session_state.w_gameplay
+        st.info("integrated_difficulty.csv를 사이드바에서 업로드하면 가중치를 조정할 수 있습니다.")
+
+    # ── 차트 표시 옵션
+    st.markdown("**표시할 곡선 선택**")
+    oc1, oc2, oc3, oc4, oc5 = st.columns(5)
+    show_target   = oc1.checkbox("목표 곡선", True)
+    show_market   = oc2.checkbox("시장 board", True)
+    show_our_intg = oc3.checkbox("우리 통합", True)
+    show_our_board= oc4.checkbox("우리 board (정규화)", False)
+    show_our_full = oc5.checkbox("우리 board+스택 (정규화)", False)
+
+    st.markdown("---")
+
+    # ── 비교 차트
     st.subheader("📈 난이도 곡선 비교")
 
     n_all  = np.arange(1, 501)
-    target = target_curve(n_all)
-    base   = baseline_curve(n_all)
-
     fig = go.Figure()
 
-    # 목표 곡선 (공식)
-    fig.add_trace(go.Scatter(
-        x=n_all, y=base, name="기준선 baseline(N)",
-        line=dict(color="#58a6ff", width=1.5, dash="dot"), opacity=0.6
-    ))
-    fig.add_trace(go.Scatter(
-        x=n_all, y=target, name="목표 곡선 target(N)",
-        line=dict(color="#58a6ff", width=2), opacity=0.9
-    ))
+    # 목표 곡선
+    if show_target:
+        fig.add_trace(go.Scatter(
+            x=n_all, y=baseline_curve(n_all), name="기준선 baseline(N)",
+            line=dict(color="#58a6ff", width=1.5, dash="dot"), opacity=0.6
+        ))
+        fig.add_trace(go.Scatter(
+            x=n_all, y=target_curve(n_all), name="목표 곡선 target(N)",
+            line=dict(color="#58a6ff", width=2), opacity=0.9
+        ))
 
-    # 시장 데이터 (원시 H1 값 → 우리 가중치 적용)
-    if market is not None:
+    # 공통 가중치 설정
+    MK_COL_MAP = {
+        "H1_1":"H1-1","H1_2":"H1-2","H1_3":"H1-3 ",
+        "H1_4":"H1-4","H1_5":"H1-5","H1_6":"H1-6 ",
+        "H1_7":"H1-7 ","H1_8":"H1-8 ","H1_9":"H1-9 ",
+        "H1_12":"H1-12 ","H1_13":"H1-13 ","H1_14":"H1-14",
+    }
+    W_H1 = st.session_state.get("h1_weights", {
+        "H1_1":8,"H1_2":12,"H1_3":10,"H1_4":8,"H1_5":10,
+        "H1_6":12,"H1_7":12,"H1_8":8,"H1_9":8,"H1_10":5,
+        "H1_11":5,"H1_12":6,"H1_13":4,"H1_14":4,"H1_15":4,
+    })
+    W_DIR = {
+        "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
+        "H1_6":False,"H1_7":False,"H1_8":False,"H1_9":False,"H1_10":False,
+        "H1_11":False,"H1_12":False,"H1_13":True,"H1_14":True,"H1_15":True,
+    }
+
+    # 시장 board_score
+    if show_market and market is not None:
         try:
             mk = market.copy()
             mk.columns = [str(c).strip() for c in mk.columns]
             mk = mk[mk["Stage"].apply(lambda x: str(x).strip().lstrip("-").isdigit())].copy()
             mk["Stage"] = mk["Stage"].astype(int)
-
-            MK_COL_MAP = {
-                "H1_1":"H1-1","H1_2":"H1-2","H1_3":"H1-3 ",
-                "H1_4":"H1-4","H1_5":"H1-5","H1_6":"H1-6 ",
-                "H1_7":"H1-7 ","H1_8":"H1-8 ","H1_9":"H1-9 ",
-                "H1_12":"H1-12 ","H1_13":"H1-13 ","H1_14":"H1-14",
-            }
-            W_H1 = st.session_state.get("h1_weights", {
-                "H1_1":8,"H1_2":12,"H1_3":10,"H1_4":8,"H1_5":10,
-                "H1_6":12,"H1_7":12,"H1_8":8,"H1_9":8,"H1_10":5,
-                "H1_11":5,"H1_12":6,"H1_13":4,"H1_14":4,"H1_15":4,
-            })
-            W_DIR = {
-                "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
-                "H1_6":False,"H1_7":False,"H1_8":False,"H1_9":False,"H1_10":False,
-                "H1_11":False,"H1_12":False,"H1_13":True,"H1_14":True,"H1_15":True,
-            }
             tw = sum(W_H1.values())
             score = pd.Series(0.0, index=mk.index)
             for key, w in W_H1.items():
@@ -628,12 +651,10 @@ elif page == "📊 2. 난이도 분석":
                     score += (1 - vn if W_DIR.get(key, False) else vn) * w
             mk["market_board"] = (score / tw * 100).round(1)
             mk_sm = mk["market_board"].rolling(5, center=True, min_periods=1).mean()
-
             fig.add_trace(go.Scatter(
                 x=mk["Stage"], y=mk["market_board"].tolist(),
-                name="시장 board_score (원시)",
-                mode="markers+lines",
-                marker=dict(size=4, color="#f78166"),
+                name="시장 board_score",
+                mode="markers+lines", marker=dict(size=4, color="#f78166"),
                 line=dict(color="#f78166", width=1), opacity=0.5
             ))
             fig.add_trace(go.Scatter(
@@ -644,22 +665,49 @@ elif page == "📊 2. 난이도 분석":
         except Exception as e:
             st.warning(f"시장 데이터 파싱 오류: {e}")
 
-    # 우리 게임 통합 난이도
     if intg is not None:
-        w_b = st.session_state.w_board
-        w_g = st.session_state.w_gameplay
-        custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
-        custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
         x_lv = list(range(1, len(intg)+1))
-        fig.add_trace(go.Scatter(
-            x=x_lv, y=custom.tolist(),
-            name="우리 게임 (원시)", line=dict(color="#3fb950", width=1), opacity=0.4
-        ))
-        fig.add_trace(go.Scatter(
-            x=x_lv, y=custom_sm.tolist(),
-            name="우리 게임 (이동평균)",
-            line=dict(color="#3fb950", width=3)
-        ))
+
+        # 우리 게임 통합 난이도
+        if show_our_intg:
+            custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
+            custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
+            fig.add_trace(go.Scatter(
+                x=x_lv, y=custom.tolist(),
+                name="우리 통합 (원시)", line=dict(color="#3fb950", width=1), opacity=0.4
+            ))
+            fig.add_trace(go.Scatter(
+                x=x_lv, y=custom_sm.tolist(),
+                name="우리 통합 (이동평균)", line=dict(color="#3fb950", width=3)
+            ))
+
+        # 우리 게임 board_score 정규화
+        if show_our_board:
+            bs = intg["board_score"]
+            bs_norm = ((bs - bs.min()) / (bs.max() - bs.min()) * 100) if bs.max() > bs.min() else bs
+            bs_sm   = bs_norm.rolling(5, center=True, min_periods=1).mean()
+            fig.add_trace(go.Scatter(
+                x=x_lv, y=bs_norm.tolist(),
+                name="우리 board (정규화, 원시)", line=dict(color="#d2a8ff", width=1), opacity=0.4
+            ))
+            fig.add_trace(go.Scatter(
+                x=x_lv, y=bs_sm.tolist(),
+                name="우리 board (정규화, 이동평균)", line=dict(color="#d2a8ff", width=2.5)
+            ))
+
+        # 우리 게임 board+gameplay 정규화 (통합 정규화)
+        if show_our_full:
+            full = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
+            full_norm = ((full - full.min()) / (full.max() - full.min()) * 100) if full.max() > full.min() else full
+            full_sm   = full_norm.rolling(5, center=True, min_periods=1).mean()
+            fig.add_trace(go.Scatter(
+                x=x_lv, y=full_norm.tolist(),
+                name="우리 board+스택 (정규화, 원시)", line=dict(color="#ffa657", width=1), opacity=0.4
+            ))
+            fig.add_trace(go.Scatter(
+                x=x_lv, y=full_sm.tolist(),
+                name="우리 board+스택 (정규화, 이동평균)", line=dict(color="#ffa657", width=2.5)
+            ))
 
     fig.update_layout(
         height=440, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
@@ -676,9 +724,23 @@ elif page == "📊 2. 난이도 분석":
     if intg is None:
         st.info("💡 사이드바에서 integrated_difficulty.csv를 업로드하면 우리 게임 곡선이 표시됩니다.")
 
+    # ── 다운로드 (가중치 적용 결과)
+    if intg is not None:
+        custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
+        custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
+        result_df = intg[["board_score","gameplay_score"]].copy()
+        result_df["custom_integrated"] = custom.round(2)
+        result_df["custom_smoothed"]   = custom_sm.round(2)
+        result_df.insert(0, "level", range(1, len(result_df)+1))
+        dc1, dc2 = st.columns(2)
+        dc1.download_button("📥 CSV 다운로드", df_to_csv_bytes(result_df),
+            f"integrated_w{w_b}_{w_g}.csv", "text/csv", use_container_width=True)
+        dc2.download_button("📥 JSON 다운로드", df_to_json_bytes(result_df),
+            f"integrated_w{w_b}_{w_g}.json", "application/json", use_container_width=True)
+
     st.markdown("---")
 
-    # ── 중단: 두 탭
+    # ── 하단: 두 탭
     inner_tab1, inner_tab2 = st.tabs(["📋 시장 데이터 원본", "📉 우리 난이도 구간 분석"])
 
     with inner_tab1:
@@ -745,30 +807,6 @@ elif page == "📊 2. 난이도 분석":
                 margin=dict(l=10,r=10,t=10,b=10))
             st.plotly_chart(fig3, use_container_width=True)
             st.dataframe(zdf, use_container_width=True)
-
-    st.markdown("---")
-
-    # ── 하단: 가중치 조정
-    st.subheader("⚖️ 판:게임진행 가중치 조정")
-    if intg is not None:
-        w_b = st.slider("판 모양 가중치 (%)", 0, 100, st.session_state.w_board, key="sl_wboard")
-        w_g = 100 - w_b
-        st.session_state.w_board    = w_b
-        st.session_state.w_gameplay = w_g
-        st.caption(f"판 모양 **{w_b}%** : 게임 진행 **{w_g}%**")
-        custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
-        custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
-        result_df = intg[["board_score","gameplay_score"]].copy()
-        result_df["custom_integrated"] = custom.round(2)
-        result_df["custom_smoothed"]   = custom_sm.round(2)
-        result_df.insert(0, "level", range(1, len(result_df)+1))
-        dc1, dc2 = st.columns(2)
-        dc1.download_button("📥 CSV 다운로드", df_to_csv_bytes(result_df),
-            f"integrated_w{w_b}_{w_g}.csv", "text/csv", use_container_width=True)
-        dc2.download_button("📥 JSON 다운로드", df_to_json_bytes(result_df),
-            f"integrated_w{w_b}_{w_g}.json", "application/json", use_container_width=True)
-    else:
-        st.info("integrated_difficulty.csv를 사이드바에서 업로드하면 가중치를 조정할 수 있습니다.")
 
 
 # ══════════════════════════════════════════════════════
