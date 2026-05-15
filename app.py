@@ -214,7 +214,7 @@ def hex_to_pixel(row, col, size=40):
     # 가로: 열마다 size*1.5 간격
     # 세로: 행마다 size*sqrt(3) 간격, 홀수 열은 size*sqrt(3)/2 아래로 offset
     x = size * 1.5 * col
-    y = -(size * math.sqrt(3) * row + (size * math.sqrt(3) / 2) * ((col + 1) % 2))
+    y = -(size * math.sqrt(3) * row + (size * math.sqrt(3) / 2) * (col % 2))
     return x, y
 
 def make_hex_path(cx, cy, size=38):
