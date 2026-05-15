@@ -210,14 +210,15 @@ def df_to_json_bytes(df):
     return json.dumps(df.to_dict(orient='records'), ensure_ascii=False, indent=2).encode("utf-8")
 
 def hex_to_pixel(row, col, size=40):
-    # flat-top + odd-r (유니티와 동일)
-    # flat-top: 가로 간격 = size * 3/2, 세로 간격 = size * sqrt(3)
-    x = size * 1.5 * col + (size * 0.75 * (row % 2))  # 홀수 행 오른쪽 offset
-    y = -size * math.sqrt(3) * row                      # row 0이 위
+    # flat-top 헥사, 열(col) 기준 배치
+    # 가로: 열마다 size*1.5 간격
+    # 세로: 행마다 size*sqrt(3) 간격, 홀수 열은 size*sqrt(3)/2 아래로 offset
+    x = size * 1.5 * col
+    y = -(size * math.sqrt(3) * row + (size * math.sqrt(3) / 2) * ((col + 1) % 2))
     return x, y
 
 def make_hex_path(cx, cy, size=38):
-    # flat-top: 꼭짓점 각도 0°부터 시작 (선이 위아래)
+    # flat-top: 각도 0°부터 (선이 위아래, 꼭짓점 좌우)
     pts = [(cx + size * math.cos(math.pi / 180 * (60 * i)),
             cy + size * math.sin(math.pi / 180 * (60 * i))) for i in range(6)]
     pts.append(pts[0])
