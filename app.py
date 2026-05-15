@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from pathlib import Path
 import math
+import io
 
 st.set_page_config(page_title="Puzzle Creator Dashboard", layout="wide", page_icon="🧩")
 
@@ -34,11 +35,11 @@ TILETYPE_NAME = {
 NEIGH_EVEN = [(-1,0),(1,0),(0,-1),(0,1),(-1,-1),(-1,1)]
 NEIGH_ODD  = [(-1,0),(1,0),(0,-1),(0,1),(1,-1),(1,1)]
 
-# ── 헥사 그리드 → Plotly 좌표 변환 (Horizontal pointy-top)
+# ── 헥사 그리드 → Plotly 좌표 변환
 def hex_to_pixel(row, col, size=40):
     x = size * math.sqrt(3) * (col + 0.5 * (row % 2))
     y = size * 1.5 * row
-    return x, -y  # y 반전
+    return x, -y
 
 def make_hex_path(cx, cy, size=38):
     pts = []
@@ -70,6 +71,81 @@ def load_level(lv: int):
             return json.load(f)
     return None
 
+# ── level_analyzer_v2 인라인 (import 없이 동작하도록 내장)
+TILE = {
+    0:'Normal',1:'Blank',2:'Stack',3:'Lock',
+    4:'Plank',5:'Ice',6:'StackLock',7:'Grass',
+    8:'Ads',9:'CameraPicture',
+}
+NEIGHBORS_EVEN = [(-1,0),(+1,0),(0,-1),(0,+1),(-1,-1),(-1,+1)]
+NEIGHBORS_ODD  = [(-1,0),(+1,0),(0,-1),(0,+1),(+1,-1),(+1,+1)]
+
+def open_sides(y, x, tiles, Y, X):
+    offsets = NEIGHBORS_EVEN if y % 2 == 0 else NEIGHBORS_ODD
+    count = 0
+    for dy, dx in offsets:
+        ny, nx = y+dy, x+dx
+        if 0 <= ny < Y and 0 <= nx < X:
+            if tiles[ny][nx].get('TileType', 1) != 1:
+                count += 1
+    return count
+
+def color_changes(stacks: list) -> int:
+    return sum(1 for i in range(1, len(stacks)) if stacks[i] != stacks[i-1])
+
+def analyze_level(data: dict) -> dict:
+    Y = data['YCells']
+    X = data['XCells']
+    tiles = data['Tiles']
+
+    groups = {t: [] for t in TILE.values()}
+    for y in range(Y):
+        for x in range(X):
+            t = tiles[y][x]
+            tt = t.get('TileType', 0)
+            groups[TILE[tt]].append((y, x, t))
+
+    def side_sum(cell_list):
+        return sum(open_sides(y, x, tiles, Y, X) for y, x, _ in cell_list)
+
+    stacks_all = groups['Stack'] + groups['StackLock']
+
+    H1_1  = X * Y
+    H1_2  = side_sum(groups['Normal'])
+    H1_3  = len(groups['Normal'])
+    H1_4  = side_sum(stacks_all)
+    H1_5  = len(stacks_all)
+    H1_6  = sum(len(t.get('Stacks', [])) for _, _, t in stacks_all)
+    H1_7  = sum(color_changes(t.get('Stacks', [])) for _, _, t in stacks_all)
+    H1_8  = side_sum(groups['Lock'])
+    H1_9  = len(groups['Lock'])
+    H1_10 = side_sum(groups['StackLock'])
+    H1_11 = len(groups['StackLock'])
+    H1_12 = (sum(t.get('Level', 0) for _, _, t in groups['Lock'] + groups['Plank']) +
+              sum(t.get('UnlockLevel', 0) for _, _, t in groups['StackLock'] + groups['Ice']))
+    H1_13 = side_sum(groups['Ads'])
+    H1_14 = min(len(groups['Ads']), 3)
+    gimmicks = groups['Plank'] + groups['Ice'] + groups['Grass'] + groups['CameraPicture']
+    H1_15 = side_sum(gimmicks)
+
+    return {
+        'XCells': X, 'YCells': Y,
+        'H1_1':H1_1,'H1_2':H1_2,'H1_3':H1_3,'H1_4':H1_4,'H1_5':H1_5,
+        'H1_6':H1_6,'H1_7':H1_7,'H1_8':H1_8,'H1_9':H1_9,'H1_10':H1_10,
+        'H1_11':H1_11,'H1_12':H1_12,'H1_13':H1_13,'H1_14':H1_14,'H1_15':H1_15,
+        'tile_counts': {k: len(v) for k, v in groups.items()},
+    }
+
+# ── 다운로드 헬퍼
+def df_to_csv_bytes(df: pd.DataFrame) -> bytes:
+    return df.to_csv(index=False).encode("utf-8-sig")
+
+def df_to_json_bytes(df: pd.DataFrame) -> bytes:
+    return json.dumps(
+        df.to_dict(orient='records'),
+        ensure_ascii=False, indent=2
+    ).encode("utf-8")
+
 # ── 사이드바
 st.sidebar.title("🧩 Puzzle Creator")
 tab = st.sidebar.radio("페이지", ["🗺️ 판 모양 뷰어", "📊 난이도 계산기", "📈 난이도 곡선", "🔗 통합 분석"])
@@ -81,17 +157,40 @@ if tab == "🗺️ 판 모양 뷰어":
     st.title("🗺️ 판 모양 뷰어")
 
     col1, col2 = st.columns([1, 3])
+
     with col1:
-        lv = st.number_input("레벨 선택", min_value=1, max_value=500, value=1, step=1)
+        # ── 소스 선택
+        source = st.radio("데이터 소스", ["레벨 번호로 불러오기", "JSON 파일 업로드"], horizontal=True)
+        st.markdown("---")
+
+        data = None
+
+        if source == "레벨 번호로 불러오기":
+            lv = st.number_input("레벨 선택", min_value=1, max_value=500, value=1, step=1)
+            data = load_level(int(lv))
+            if data is None:
+                st.warning(f"N_{lv:03d}.json 파일을 찾을 수 없습니다.\nJSON 파일 업로드를 이용해 주세요.")
+
+        else:  # JSON 업로드
+            uploaded_json = st.file_uploader(
+                "레벨 JSON 파일 업로드",
+                type=["json"],
+                accept_multiple_files=False,
+                help="N_001.json 형식의 레벨 파일을 올려주세요."
+            )
+            if uploaded_json:
+                try:
+                    data = json.load(uploaded_json)
+                    st.success(f"✅ {uploaded_json.name} 로드 완료")
+                except Exception as e:
+                    st.error(f"파일 읽기 오류: {e}")
+
         st.markdown("---")
         show_coord = st.checkbox("좌표 표시", value=False)
         show_chips = st.checkbox("칩 색상 표시", value=True)
         hex_size   = st.slider("헥사 크기", 20, 60, 38)
 
-    data = load_level(int(lv))
-    if data is None:
-        st.error(f"N_{lv:03d}.json 파일을 찾을 수 없습니다.")
-    else:
+    if data is not None:
         Y = data['YCells']; X = data['XCells']
         tiles = data['Tiles']
 
@@ -110,12 +209,29 @@ if tab == "🗺️ 판 모양 뷰어":
                 if name != 'Blank':
                     st.markdown(f"- {name}: {cnt}개")
 
-            # H1 지표
-            from level_analyzer_v2 import analyze_level
             h1 = analyze_level(data)
             with st.expander("H1 지표"):
                 for k in ['H1_1','H1_2','H1_3','H1_5','H1_6','H1_7','H1_9','H1_12','H1_14']:
                     st.markdown(f"**{k}**: {h1[k]}")
+
+            # ── H1 지표 CSV 다운로드
+            st.markdown("---")
+            h1_export = {k: v for k, v in h1.items() if k != 'tile_counts'}
+            h1_df = pd.DataFrame([h1_export])
+            st.download_button(
+                label="📥 H1 지표 CSV 다운로드",
+                data=df_to_csv_bytes(h1_df),
+                file_name="h1_metrics.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+            st.download_button(
+                label="📥 H1 지표 JSON 다운로드",
+                data=df_to_json_bytes(h1_df),
+                file_name="h1_metrics.json",
+                mime="application/json",
+                use_container_width=True
+            )
 
         with col2:
             fig = go.Figure()
@@ -136,7 +252,6 @@ if tab == "🗺️ 판 모양 뷰어":
                         mode='lines', hoverinfo='skip', showlegend=False
                     ))
 
-                    # 레이블
                     label = name[:2]
                     if name in ('Stack','StackLock','Ice') and 'Stacks' in tile:
                         stacks = tile['Stacks']
@@ -175,12 +290,32 @@ elif tab == "📊 난이도 계산기":
     st.title("📊 난이도 계산기")
     st.caption("Stage 탭 파라미터 기반 난이도 점수 계산 (#Level_Calculator 재현)")
 
-    tbl = load_tblstage()
+    # ── 데이터 소스 선택
+    source2 = st.radio("데이터 소스", ["로컬 파일 사용 (tblStage_500.xlsx)", "Excel 파일 직접 업로드"], horizontal=True)
+
+    tbl = pd.DataFrame()
+
+    if source2 == "로컬 파일 사용 (tblStage_500.xlsx)":
+        tbl = load_tblstage()
+        if tbl.empty:
+            st.warning("tblStage_500.xlsx를 data/ 폴더에 넣어주세요. 또는 파일을 직접 업로드해 주세요.")
+    else:
+        uploaded_xlsx = st.file_uploader(
+            "tblStage Excel 파일 업로드 (.xlsx)",
+            type=["xlsx"],
+            help="'Stage' 시트가 있고 LevelName 컬럼을 포함한 파일이어야 합니다."
+        )
+        if uploaded_xlsx:
+            try:
+                df_raw = pd.read_excel(uploaded_xlsx, sheet_name='Stage', header=0)
+                tbl = df_raw[df_raw['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
+                st.success(f"✅ {uploaded_xlsx.name} 로드 완료 — {len(tbl)}개 레벨")
+            except Exception as e:
+                st.error(f"파일 읽기 오류: {e}")
+
     intg = load_integrated()
 
-    if tbl.empty:
-        st.error("tblStage_500.xlsx를 data/ 폴더에 넣어주세요.")
-    else:
+    if not tbl.empty:
         col1, col2 = st.columns([1, 2])
         with col1:
             st.subheader("⚙️ 가중치 설정")
@@ -239,17 +374,17 @@ elif tab == "📊 난이도 계산기":
 
         with col2:
             st.subheader("📋 레벨별 난이도")
-            lv_range = st.slider("레벨 범위", 1, 500, (1, 100))
+            lv_range = st.slider("레벨 범위", 1, len(tbl), (1, min(100, len(tbl))))
             sub = tbl.iloc[lv_range[0]-1:lv_range[1]].copy()
             sub.index = range(lv_range[0], lv_range[1]+1)
 
             grade_map = lambda d: '매우쉬움' if d<25 else '쉬움' if d<45 else '보통' if d<60 else '어려움' if d<75 else '매우어려움'
-            color_map = {'매우쉬움':'#1890FF','쉬움':'#52C41A','보통':'#FADB14','어려움':'#FA8C16','매우어려움':'#F5222D'}
+            color_map_g = {'매우쉬움':'#1890FF','쉬움':'#52C41A','보통':'#FADB14','어려움':'#FA8C16','매우어려움':'#F5222D'}
 
             fig = go.Figure()
             x_vals = list(range(lv_range[0], lv_range[1]+1))
             y_vals = sub['계산_난이도'].tolist()
-            colors = [color_map[grade_map(d)] for d in y_vals]
+            colors = [color_map_g[grade_map(d)] for d in y_vals]
 
             fig.add_trace(go.Bar(x=x_vals, y=y_vals, marker_color=colors, name='계산 난이도'))
             fig.add_trace(go.Scatter(
@@ -266,22 +401,64 @@ elif tab == "📊 난이도 계산기":
             show_cols = ['LevelName','TotalAllocation','계산_난이도']
             st.dataframe(sub[show_cols].rename(columns={'계산_난이도':'난이도점수'}), height=300)
 
+            # ── 다운로드 (전체 500레벨 기준)
+            st.markdown("---")
+            full_result = tbl[['LevelName','TotalAllocation','계산_난이도']].copy()
+            full_result.columns = ['LevelName','TotalAllocation','난이도점수']
+            full_result.insert(0, 'level', range(1, len(full_result)+1))
+
+            st.caption(f"💾 다운로드: 전체 {len(full_result)}개 레벨 / 현재 가중치 기준")
+            dcol1, dcol2 = st.columns(2)
+            dcol1.download_button(
+                label="📥 CSV 다운로드",
+                data=df_to_csv_bytes(full_result),
+                file_name=f"calculated_difficulty_w{total_w}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+            dcol2.download_button(
+                label="📥 JSON 다운로드",
+                data=df_to_json_bytes(full_result),
+                file_name=f"calculated_difficulty_w{total_w}.json",
+                mime="application/json",
+                use_container_width=True
+            )
+
 # ════════════════════════════════════════
 # 탭 3: 난이도 곡선
 # ════════════════════════════════════════
 elif tab == "📈 난이도 곡선":
     st.title("📈 난이도 곡선")
 
-    intg = load_integrated()
-    if intg.empty:
-        st.error("integrated_difficulty.csv를 data/ 폴더에 넣어주세요.")
+    # ── 데이터 소스 선택
+    source3 = st.radio("데이터 소스", ["로컬 파일 사용 (integrated_difficulty.csv)", "CSV 파일 직접 업로드"], horizontal=True)
+
+    intg = pd.DataFrame()
+
+    if source3 == "로컬 파일 사용 (integrated_difficulty.csv)":
+        intg = load_integrated()
+        if intg.empty:
+            st.warning("integrated_difficulty.csv를 data/ 폴더에 넣어주세요. 또는 파일을 직접 업로드해 주세요.")
     else:
+        uploaded_csv = st.file_uploader(
+            "integrated_difficulty CSV 파일 업로드",
+            type=["csv"],
+            help="board_score, gameplay_score, integrated, integrated_sm 컬럼이 필요합니다."
+        )
+        if uploaded_csv:
+            try:
+                intg = pd.read_csv(uploaded_csv)
+                st.success(f"✅ {uploaded_csv.name} 로드 완료 — {len(intg)}개 레벨")
+            except Exception as e:
+                st.error(f"파일 읽기 오류: {e}")
+
+    if not intg.empty:
         col1, col2, col3 = st.columns(3)
         col1.metric("평균 통합 난이도", f"{intg['integrated'].mean():.1f}")
         col2.metric("최고점 (레벨)", f"{intg['integrated'].max():.1f} (Lv{intg['integrated'].idxmax()+1})")
         col3.metric("최저점 (레벨)", f"{intg['integrated'].min():.1f} (Lv{intg['integrated'].idxmin()+1})")
 
-        lv_range = st.slider("레벨 범위", 1, 500, (1, 500), key='curve_range')
+        lv_range = st.slider("레벨 범위", 1, len(intg), (1, len(intg)), key='curve_range')
         sub = intg.iloc[lv_range[0]-1:lv_range[1]]
         x   = list(range(lv_range[0], lv_range[1]+1))
 
@@ -308,9 +485,10 @@ elif tab == "📈 난이도 곡선":
         # 구간 평균
         st.subheader("구간별 평균")
         zone_size = st.select_slider("구간 크기", [10,25,50,100], value=50)
+        total_lv = len(intg)
         zones = []
-        for i in range(0, 500, zone_size):
-            lo2, hi2 = i, min(i+zone_size, 500)
+        for i in range(0, total_lv, zone_size):
+            lo2, hi2 = i, min(i+zone_size, total_lv)
             sub2 = intg.iloc[lo2:hi2]
             zones.append({
                 '구간': f"Lv{lo2+1}-{hi2}",
@@ -337,33 +515,70 @@ elif tab == "📈 난이도 곡선":
         st.plotly_chart(fig2, use_container_width=True)
         st.dataframe(zone_df, use_container_width=True)
 
+        # ── 다운로드
+        st.markdown("---")
+        st.caption("💾 현재 로드된 난이도 데이터 다운로드")
+        dcol1, dcol2 = st.columns(2)
+        dcol1.download_button(
+            label="📥 CSV 다운로드",
+            data=df_to_csv_bytes(intg),
+            file_name="integrated_difficulty_export.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+        dcol2.download_button(
+            label="📥 JSON 다운로드",
+            data=df_to_json_bytes(intg),
+            file_name="integrated_difficulty_export.json",
+            mime="application/json",
+            use_container_width=True
+        )
+
 # ════════════════════════════════════════
 # 탭 4: 통합 분석
 # ════════════════════════════════════════
 elif tab == "🔗 통합 분석":
     st.title("🔗 통합 분석")
 
-    intg = load_integrated()
-    if intg.empty:
-        st.error("integrated_difficulty.csv가 없습니다.")
+    # ── 데이터 소스 선택
+    source4 = st.radio("데이터 소스", ["로컬 파일 사용 (integrated_difficulty.csv)", "CSV 파일 직접 업로드"], horizontal=True)
+
+    intg = pd.DataFrame()
+
+    if source4 == "로컬 파일 사용 (integrated_difficulty.csv)":
+        intg = load_integrated()
+        if intg.empty:
+            st.warning("integrated_difficulty.csv가 없습니다. 또는 파일을 직접 업로드해 주세요.")
     else:
+        uploaded_csv4 = st.file_uploader(
+            "integrated_difficulty CSV 파일 업로드",
+            type=["csv"],
+            help="board_score, gameplay_score 컬럼이 필요합니다.",
+            key="upload_intg4"
+        )
+        if uploaded_csv4:
+            try:
+                intg = pd.read_csv(uploaded_csv4)
+                st.success(f"✅ {uploaded_csv4.name} 로드 완료 — {len(intg)}개 레벨")
+            except Exception as e:
+                st.error(f"파일 읽기 오류: {e}")
+
+    if not intg.empty:
         w_board    = st.slider("판 모양 가중치 (%)", 0, 100, 50)
         w_gameplay = 100 - w_board
         st.caption(f"판 모양 {w_board}% : 게임 진행 {w_gameplay}%")
 
-        custom = (intg['board_score']*w_board + intg['gameplay_score']*w_gameplay) / 100
+        custom    = (intg['board_score']*w_board + intg['gameplay_score']*w_gameplay) / 100
         custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=list(range(1,501)), y=custom.tolist(),
+        fig.add_trace(go.Scatter(x=list(range(1,len(intg)+1)), y=custom.tolist(),
                                  mode='lines', name='통합 원시',
                                  line=dict(color='#AAAAAA',width=1)))
-        fig.add_trace(go.Scatter(x=list(range(1,501)), y=custom_sm.tolist(),
+        fig.add_trace(go.Scatter(x=list(range(1,len(intg)+1)), y=custom_sm.tolist(),
                                  mode='lines', name='통합 이동평균',
                                  line=dict(color='#52C41A',width=3)))
-
-        # 기존 50:50 비교
-        fig.add_trace(go.Scatter(x=list(range(1,501)), y=intg['integrated_sm'].tolist(),
+        fig.add_trace(go.Scatter(x=list(range(1,len(intg)+1)), y=intg['integrated_sm'].tolist(),
                                  mode='lines', name='기존 50:50',
                                  line=dict(color='#1890FF',width=1,dash='dash')))
 
@@ -392,3 +607,27 @@ elif tab == "🔗 통합 분석":
                            font_color='white', xaxis_title='등급', yaxis_title='개수',
                            margin=dict(l=10,r=10,t=10,b=10))
         st.plotly_chart(fig3, use_container_width=True)
+
+        # ── 다운로드
+        st.markdown("---")
+        result_df = intg[['board_score','gameplay_score']].copy()
+        result_df['custom_integrated'] = custom.round(2)
+        result_df['custom_smoothed']   = custom_sm.round(2)
+        result_df.insert(0, 'level', range(1, len(result_df)+1))
+
+        st.caption(f"💾 다운로드: 판 모양 {w_board}% : 게임 진행 {w_gameplay}% 기준")
+        dcol1, dcol2 = st.columns(2)
+        dcol1.download_button(
+            label="📥 CSV 다운로드",
+            data=df_to_csv_bytes(result_df),
+            file_name=f"integrated_w{w_board}_{w_gameplay}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+        dcol2.download_button(
+            label="📥 JSON 다운로드",
+            data=df_to_json_bytes(result_df),
+            file_name=f"integrated_w{w_board}_{w_gameplay}.json",
+            mime="application/json",
+            use_container_width=True
+        )
