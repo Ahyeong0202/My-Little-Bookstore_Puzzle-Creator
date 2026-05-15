@@ -41,37 +41,7 @@ ARCHIVE_PATH = "data/archives"
 # ══════════════════════════════════════════════════════
 # CSS
 # ══════════════════════════════════════════════════════
-st.markdown("""
-<style>
-[data-testid="stSidebar"] { background: #0d1117; }
-[data-testid="stSidebar"] * { color: #e6edf3; }
-.sidebar-section {
-    background: #161b22; border-radius: 8px;
-    padding: 12px 14px; margin-bottom: 12px;
-}
-.sidebar-label {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-    color: #7d8590; text-transform: uppercase; margin-bottom: 8px;
-}
-.file-badge {
-    display: inline-block; background: #238636;
-    color: white; border-radius: 4px;
-    font-size: 11px; padding: 2px 7px; margin: 2px 0;
-}
-.file-badge-warn {
-    display: inline-block; background: #9e6a03;
-    color: white; border-radius: 4px;
-    font-size: 11px; padding: 2px 7px; margin: 2px 0;
-}
-.metric-card {
-    background: #161b22; border: 1px solid #30363d;
-    border-radius: 8px; padding: 16px; text-align: center;
-}
-.metric-val { font-size: 28px; font-weight: 700; color: #58a6ff; }
-.metric-lbl { font-size: 12px; color: #7d8590; margin-top: 4px; }
-div[data-testid="stTabs"] button { font-size: 14px; }
-</style>
-""", unsafe_allow_html=True)
+# ── CSS는 session_state 초기화 이후에 주입 (아래 테마 적용 블록에서 처리)
 
 # ══════════════════════════════════════════════════════
 # session_state 초기화
@@ -89,9 +59,90 @@ for key, default in {
     "github_token": "",
     "archives":     [],
     "lang":         "한국어",
+    "dark_mode":    True,   # 다크모드 기본값
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
+
+# ── 테마 변수 (다크/라이트)
+DK = st.session_state.dark_mode
+T = {
+    "bg":        "#0d1117" if DK else "#ffffff",
+    "bg2":       "#161b22" if DK else "#f6f8fa",
+    "bg3":       "#21262d" if DK else "#eaeef2",
+    "border":    "#30363d" if DK else "#d0d7de",
+    "text":      "#e6edf3" if DK else "#1f2328",
+    "text2":     "#7d8590" if DK else "#656d76",
+    "accent":    "#58a6ff" if DK else "#0969da",
+    "grid_bg":   "#1a1a2e" if DK else "#f0f4ff",
+    "plot_bg":   "#0d1117" if DK else "#ffffff",
+    "grid_line": "#21262d" if DK else "#e8ecf0",
+}
+
+# ── 동적 CSS 주입
+st.markdown(f"""
+<style>
+/* ── 전체 배경 */
+.stApp {{ background-color: {T["bg"]}; color: {T["text"]}; }}
+[data-testid="stAppViewContainer"] {{ background-color: {T["bg"]}; }}
+[data-testid="stHeader"] {{ background-color: {T["bg"]}; }}
+
+/* ── 사이드바 */
+[data-testid="stSidebar"] {{ background: {T["bg2"]}; border-right: 1px solid {T["border"]}; }}
+[data-testid="stSidebar"] * {{ color: {T["text"]}; }}
+
+/* ── 입력 위젯 */
+[data-testid="stTextInput"] input,
+[data-testid="stNumberInput"] input,
+[data-testid="stSelectbox"] div,
+[data-testid="stTextArea"] textarea {{
+    background-color: {T["bg3"]} !important;
+    color: {T["text"]} !important;
+    border-color: {T["border"]} !important;
+}}
+
+/* ── 카드/섹션 */
+.metric-card {{
+    background: {T["bg2"]}; border: 1px solid {T["border"]};
+    border-radius: 8px; padding: 16px; text-align: center;
+}}
+.metric-val {{ font-size: 28px; font-weight: 700; color: {T["accent"]}; }}
+.metric-lbl {{ font-size: 12px; color: {T["text2"]}; margin-top: 4px; }}
+
+/* ── 뱃지 */
+.file-badge {{
+    display: inline-block; background: #238636;
+    color: white; border-radius: 4px;
+    font-size: 11px; padding: 2px 7px; margin: 2px 0;
+}}
+.file-badge-warn {{
+    display: inline-block; background: #9e6a03;
+    color: white; border-radius: 4px;
+    font-size: 11px; padding: 2px 7px; margin: 2px 0;
+}}
+
+/* ── 사이드바 라벨 */
+.sidebar-label {{
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    color: {T["text2"]}; text-transform: uppercase; margin-bottom: 8px;
+}}
+
+/* ── 탭 버튼 */
+div[data-testid="stTabs"] button {{ font-size: 14px; }}
+
+/* ── 데이터프레임 */
+[data-testid="stDataFrame"] {{ background: {T["bg2"]}; }}
+
+/* ── expander */
+[data-testid="stExpander"] {{
+    background: {T["bg2"]}; border: 1px solid {T["border"]} !important;
+    border-radius: 6px;
+}}
+
+/* ── 구분선 */
+hr {{ border-color: {T["border"]}; }}
+</style>
+""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
 # 헬퍼 함수
@@ -103,13 +154,15 @@ def df_to_json_bytes(df):
     return json.dumps(df.to_dict(orient='records'), ensure_ascii=False, indent=2).encode("utf-8")
 
 def hex_to_pixel(row, col, size=40):
+    # odd-r: 홀수 행은 오른쪽으로 0.5 offset (유니티와 동일)
     x = size * math.sqrt(3) * (col + 0.5 * (row % 2))
-    y = size * 1.5 * row
-    return x, -y
+    y = -size * 1.5 * row   # y 반전: row 0이 위, 아래로 갈수록 증가
+    return x, y
 
 def make_hex_path(cx, cy, size=38):
-    pts = [(cx + size*math.cos(math.pi/180*(60*i-30)),
-            cy + size*math.sin(math.pi/180*(60*i-30))) for i in range(6)]
+    # flat-top 헥사 (유니티 기본)
+    pts = [(cx + size*math.cos(math.pi/180*(60*i)),
+            cy + size*math.sin(math.pi/180*(60*i))) for i in range(6)]
     pts.append(pts[0])
     return [p[0] for p in pts], [p[1] for p in pts]
 
@@ -276,6 +329,18 @@ with st.sidebar:
         if token_input:
             st.session_state.github_token = token_input
         st.caption(f"Repo: {GITHUB_REPO}")
+
+    st.markdown("---")
+    # ── 테마 토글
+    st.markdown('<div class="sidebar-label">🎨 테마</div>', unsafe_allow_html=True)
+    dark_toggle = st.toggle(
+        "🌙 다크모드" if DK else "☀️ 라이트모드",
+        value=st.session_state.dark_mode,
+        key="theme_toggle"
+    )
+    if dark_toggle != st.session_state.dark_mode:
+        st.session_state.dark_mode = dark_toggle
+        st.rerun()
 
     st.markdown("---")
     # ── 언어 (후순위)
@@ -516,10 +581,10 @@ elif page == "📊 2. 난이도 분석":
         ))
 
     fig.update_layout(
-        height=420, plot_bgcolor='#0d1117', paper_bgcolor='#0d1117',
-        font_color='#e6edf3', xaxis_title='레벨', yaxis_title='난이도 점수',
-        yaxis=dict(range=[0,105], gridcolor='#21262d'),
-        xaxis=dict(gridcolor='#21262d'),
+        height=420, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
+        font_color=T["text"], xaxis_title='레벨', yaxis_title='난이도 점수',
+        yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
+        xaxis=dict(gridcolor=T["grid_line"]),
         legend=dict(orientation='h', y=1.12, bgcolor='rgba(0,0,0,0)'),
         margin=dict(l=10,r=10,t=40,b=10)
     )
@@ -561,9 +626,9 @@ elif page == "📊 2. 난이도 분석":
                             marker=dict(size=4)
                         ))
                 fig2.update_layout(
-                    height=320, plot_bgcolor='#0d1117', paper_bgcolor='#0d1117',
-                    font_color='#e6edf3', xaxis_title='레벨',
-                    xaxis=dict(gridcolor='#21262d'), yaxis=dict(gridcolor='#21262d'),
+                    height=320, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
+                    font_color=T["text"], xaxis_title='레벨',
+                    xaxis=dict(gridcolor=T["grid_line"]), yaxis=dict(gridcolor=T["grid_line"]),
                     legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)'),
                     margin=dict(l=10,r=10,t=30,b=10)
                 )
@@ -594,9 +659,9 @@ elif page == "📊 2. 난이도 분석":
             fig3.add_trace(go.Bar(x=zdf['구간'],y=zdf['판 모양'],name='판 모양',marker_color='#fa8c16'))
             fig3.add_trace(go.Bar(x=zdf['구간'],y=zdf['게임 진행'],name='게임 진행',marker_color='#1890ff'))
             fig3.add_trace(go.Scatter(x=zdf['구간'],y=zdf['통합 평균'],mode='lines+markers',name='통합 평균',line=dict(color='#3fb950',width=2)))
-            fig3.update_layout(height=300,barmode='group',plot_bgcolor='#0d1117',paper_bgcolor='#0d1117',
-                               font_color='#e6edf3',yaxis=dict(range=[0,100],gridcolor='#21262d'),
-                               xaxis=dict(gridcolor='#21262d'),margin=dict(l=10,r=10,t=10,b=10))
+            fig3.update_layout(height=300,barmode='group',plot_bgcolor=T["plot_bg"],paper_bgcolor=T["plot_bg"],
+                               font_color=T["text"],yaxis=dict(range=[0,100],gridcolor=T["grid_line"]),
+                               xaxis=dict(gridcolor=T["grid_line"]),margin=dict(l=10,r=10,t=10,b=10))
             st.plotly_chart(fig3, use_container_width=True)
             st.dataframe(zdf, use_container_width=True)
 
@@ -699,18 +764,19 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                             font=dict(size=9,color='white' if tt!=0 else '#333'),align='center')
                 fig.update_layout(height=600,margin=dict(l=10,r=10,t=10,b=10),
                     xaxis=dict(visible=False,scaleanchor='y'),yaxis=dict(visible=False),
-                    plot_bgcolor='#1a1a2e',paper_bgcolor='#1a1a2e',showlegend=False)
+                    plot_bgcolor=T["grid_bg"],paper_bgcolor=T["grid_bg"],showlegend=False)
                 st.plotly_chart(fig,use_container_width=True)
             else:
                 st.info("왼쪽에서 레벨을 선택하거나 JSON을 업로드해주세요.")
 
     # ── 편집기
     with edit_tab:
-        st.caption("XCells·YCells 설정 후 셀을 클릭해 타입을 변경하고, JSON으로 저장하세요.")
+        st.caption("XCells·YCells 설정 → 행/열로 셀 선택 → 타입 지정 → 셀 적용 → JSON 저장")
+
+        # 그리드 크기 설정
         ec1,ec2,ec3 = st.columns([1,1,2])
         new_x = ec1.number_input("XCells",3,10,st.session_state.grid_x,key="nx")
         new_y = ec2.number_input("YCells",3,10,st.session_state.grid_y,key="ny")
-
         if ec3.button("🔄 그리드 초기화") or st.session_state.grid_tiles is None \
                 or len(st.session_state.grid_tiles)!=new_y \
                 or len(st.session_state.grid_tiles[0])!=new_x:
@@ -719,75 +785,205 @@ elif page == "🗺️ 3. 판 모양 뷰어":
             st.session_state.grid_tiles = [[{'TileType':0} for _ in range(new_x)] for _ in range(new_y)]
 
         tiles_e = st.session_state.grid_tiles
-        Y_e,X_e = new_y,new_x
+        Y_e, X_e = new_y, new_x
 
-        # 셀 선택 패널
-        st.markdown("**셀 편집**")
-        sc1,sc2 = st.columns(2)
-        sel_y = sc1.number_input("행 (Y)",0,Y_e-1,0,key="sel_y")
-        sel_x = sc2.number_input("열 (X)",0,X_e-1,0,key="sel_x")
+        # ── 메인 레이아웃: 그리드(좌) + 정보패널(우)
+        gcol, icol = st.columns([3, 1])
 
-        cur_tile = tiles_e[sel_y][sel_x]
-        cur_type = TILETYPE.get(cur_tile.get('TileType',0),'Normal')
+        with icol:
+            # ── 셀 선택
+            st.markdown("### 📍 셀 선택")
+            sel_y = st.number_input("행 (Y, 위→아래)", 0, Y_e-1, 0, key="sel_y")
+            sel_x = st.number_input("열 (X, 좌→우)",  0, X_e-1, 0, key="sel_x")
 
-        tc1,tc2 = st.columns(2)
-        new_type = tc1.selectbox("TileType",[
-            'Normal','Blank','Stack','Lock','Plank','Ice','StackLock','Grass','Ads','CameraPicture'
-        ], index=list(TILETYPE.values()).index(cur_type), key="sel_type")
+            cur_tile = tiles_e[sel_y][sel_x]
+            cur_type = TILETYPE.get(cur_tile.get('TileType', 0), 'Normal')
 
-        if new_type in ('Stack','StackLock','Ice'):
-            stacks_input = tc2.text_input("칩 색 (콤마구분, 0~7)", ",".join(map(str,cur_tile.get('Stacks',[]))), key="sel_stacks")
-            try: new_stacks=[int(s) for s in stacks_input.split(',') if s.strip().isdigit()]
-            except: new_stacks=[]
-        if new_type in ('Lock','Plank'):
-            lv_val = tc2.number_input("Level",0,9999,cur_tile.get('Level',0),key="sel_lv")
-        if new_type in ('StackLock','Ice'):
-            ul_val = tc2.number_input("UnlockLevel",0,9999,cur_tile.get('UnlockLevel',0),key="sel_ul")
+            st.markdown("---")
 
-        if st.button("✅ 셀 적용"):
-            new_cell = {'TileType': TILE_REV[new_type]}
-            if new_type in ('Stack','StackLock','Ice'): new_cell['Stacks']=new_stacks
-            if new_type in ('Lock','Plank'): new_cell['Level']=lv_val
-            if new_type in ('StackLock','Ice'): new_cell['UnlockLevel']=ul_val
-            st.session_state.grid_tiles[sel_y][sel_x]=new_cell
-            st.rerun()
+            # ── 현재 셀 정보 표시
+            st.markdown("### 🔍 현재 셀 정보")
+            tile_color = HEX_COLORS.get(cur_type, '#CCC')
+            st.markdown(
+                f'<div style="background:{tile_color};border-radius:8px;'
+                f'padding:8px 12px;margin-bottom:8px;font-weight:700;'
+                f'color:{"#333" if cur_type=="Normal" else "white"};font-size:14px;">'
+                f'({sel_y}, {sel_x}) — {cur_type}</div>',
+                unsafe_allow_html=True
+            )
 
-        # 미리보기
-        fake_data = {'XCells':X_e,'YCells':Y_e,'Tiles':st.session_state.grid_tiles}
-        fig_e=go.Figure()
-        hs=36
-        for y in range(Y_e):
-            for x in range(X_e):
-                tile=tiles_e[y][x]; tt=tile.get('TileType',0)
-                name=TILETYPE.get(tt,'Normal')
-                cx,cy=hex_to_pixel(y,x,hs)
-                hx,hy=make_hex_path(cx,cy,hs*0.92)
-                border_color='#FFD700' if y==sel_y and x==sel_x else 'white'
-                border_w=3 if y==sel_y and x==sel_x else 1
-                fig_e.add_trace(go.Scatter(x=hx,y=hy,fill='toself',
-                    fillcolor=HEX_COLORS.get(name,'#CCC'),
-                    line=dict(color=border_color,width=border_w),
-                    mode='lines',hoverinfo='skip',showlegend=False))
-                label=name[:2] if name!='Blank' else ''
-                if name in ('Stack','StackLock','Ice') and 'Stacks' in tile:
-                    label=f"S{len(tile['Stacks'])}"
-                fig_e.add_annotation(x=cx,y=cy,text=label,showarrow=False,
-                    font=dict(size=9,color='white' if tt!=0 else '#333'),align='center')
-        fig_e.update_layout(height=500,margin=dict(l=10,r=10,t=10,b=10),
-            xaxis=dict(visible=False,scaleanchor='y'),yaxis=dict(visible=False),
-            plot_bgcolor='#1a1a2e',paper_bgcolor='#1a1a2e',showlegend=False)
-        st.plotly_chart(fig_e,use_container_width=True)
+            # 칩 색상 미리보기
+            if cur_type in ('Stack', 'StackLock', 'Ice') and 'Stacks' in cur_tile:
+                stacks_now = cur_tile['Stacks']
+                st.markdown(f"**칩 수**: {len(stacks_now)}개")
+                chip_html = ""
+                for c in stacks_now:
+                    cname = COLOR_MAP.get(c, '?')
+                    chex  = CHIP_HEX.get(c, '#888')
+                    chip_html += (
+                        f'<span style="display:inline-block;background:{chex};'
+                        f'color:{"#333" if c in (1,6) else "white"};'
+                        f'border-radius:4px;padding:2px 7px;margin:2px;'
+                        f'font-size:11px;font-weight:600;">{c} {cname}</span>'
+                    )
+                st.markdown(chip_html, unsafe_allow_html=True)
+            elif cur_type in ('Lock', 'Plank'):
+                st.markdown(f"**Level**: {cur_tile.get('Level', 0)}")
+            elif cur_type in ('StackLock', 'Ice'):
+                st.markdown(f"**UnlockLevel**: {cur_tile.get('UnlockLevel', 0)}")
+                if 'Stacks' in cur_tile:
+                    st.markdown(f"**칩 수**: {len(cur_tile['Stacks'])}개")
 
-        # JSON 저장
-        st.markdown("---")
-        fname = st.text_input("저장 파일명","N_001.json",key="edit_fname")
-        json_out = json.dumps({
-            "Timestamp": int(datetime.now().timestamp()*1000),
-            "GameType":0,"GridOrientation":0,
-            "XCells":X_e,"YCells":Y_e,
-            "Tiles":st.session_state.grid_tiles
-        }, ensure_ascii=False, indent=2).encode("utf-8")
-        st.download_button("📥 JSON 다운로드",json_out,fname,"application/json",use_container_width=True)
+            # 원시 JSON
+            with st.expander("raw JSON"):
+                st.json(cur_tile)
+
+            st.markdown("---")
+
+            # ── 셀 편집
+            st.markdown("### ✏️ 셀 편집")
+            new_type = st.selectbox("TileType", [
+                'Normal','Blank','Stack','Lock','Plank',
+                'Ice','StackLock','Grass','Ads','CameraPicture'
+            ], index=list(TILETYPE.values()).index(cur_type), key="sel_type")
+
+            new_stacks, lv_val, ul_val = [], 0, 0
+
+            if new_type in ('Stack', 'StackLock', 'Ice'):
+                st.markdown("**칩 색상** (0~7, 콤마구분)")
+                # 색상 참조표
+                st.markdown(
+                    "".join([
+                        f'<span style="background:{CHIP_HEX[i]};color:{"#333" if i in (1,6) else "white"};'
+                        f'border-radius:3px;padding:1px 5px;margin:1px;font-size:10px;">'
+                        f'{i}={COLOR_MAP[i][:3]}</span>'
+                        for i in range(8)
+                    ]),
+                    unsafe_allow_html=True
+                )
+                stacks_input = st.text_input(
+                    "칩 입력",
+                    ",".join(map(str, cur_tile.get('Stacks', []))),
+                    key="sel_stacks",
+                    help="예: 0,1,2,0  → Blue, Yellow, Red, Blue 순서로 쌓임"
+                )
+                try:
+                    new_stacks = [int(s) for s in stacks_input.split(',') if s.strip().isdigit()]
+                except:
+                    new_stacks = []
+                # 입력 미리보기
+                if new_stacks:
+                    preview_html = "".join([
+                        f'<span style="background:{CHIP_HEX.get(c,"#888")};'
+                        f'color:{"#333" if c in (1,6) else "white"};'
+                        f'border-radius:3px;padding:2px 6px;margin:2px;font-size:11px;">'
+                        f'{COLOR_MAP.get(c,"?")}</span>'
+                        for c in new_stacks
+                    ])
+                    st.markdown(preview_html, unsafe_allow_html=True)
+
+            if new_type in ('Lock', 'Plank'):
+                lv_val = st.number_input("Level", 0, 9999,
+                                         cur_tile.get('Level', 0), key="sel_lv")
+            if new_type in ('StackLock', 'Ice'):
+                ul_val = st.number_input("UnlockLevel", 0, 9999,
+                                          cur_tile.get('UnlockLevel', 0), key="sel_ul")
+
+            if st.button("✅ 셀 적용", use_container_width=True):
+                new_cell = {'TileType': TILE_REV[new_type]}
+                if new_type in ('Stack', 'StackLock', 'Ice'):
+                    new_cell['Stacks'] = new_stacks
+                if new_type in ('Lock', 'Plank'):
+                    new_cell['Level'] = lv_val
+                if new_type in ('StackLock', 'Ice'):
+                    new_cell['UnlockLevel'] = ul_val
+                st.session_state.grid_tiles[sel_y][sel_x] = new_cell
+                st.rerun()
+
+            st.markdown("---")
+            # ── JSON 저장
+            st.markdown("### 💾 저장")
+            fname = st.text_input("파일명", "N_001.json", key="edit_fname")
+            json_out = json.dumps({
+                "Timestamp": int(datetime.now().timestamp()*1000),
+                "GameType": 0, "GridOrientation": 0,
+                "XCells": X_e, "YCells": Y_e,
+                "Tiles": st.session_state.grid_tiles
+            }, ensure_ascii=False, indent=2).encode("utf-8")
+            st.download_button("📥 JSON 다운로드", json_out, fname,
+                               "application/json", use_container_width=True)
+
+        # ── 그리드 미리보기 (좌측)
+        with gcol:
+            fig_e = go.Figure()
+            hs = 42
+            for y in range(Y_e):
+                for x in range(X_e):
+                    tile = tiles_e[y][x]
+                    tt   = tile.get('TileType', 0)
+                    name = TILETYPE.get(tt, 'Normal')
+                    cx, cy = hex_to_pixel(y, x, hs)
+                    hx, hy = make_hex_path(cx, cy, hs * 0.92)
+
+                    is_sel = (y == sel_y and x == sel_x)
+                    fill   = HEX_COLORS.get(name, '#CCC')
+                    border_color = '#FFD700' if is_sel else ('#555' if name=='Blank' else 'white')
+                    border_w     = 4 if is_sel else 1.5
+
+                    fig_e.add_trace(go.Scatter(
+                        x=hx, y=hy, fill='toself',
+                        fillcolor=fill,
+                        line=dict(color=border_color, width=border_w),
+                        mode='lines', hoverinfo='skip', showlegend=False
+                    ))
+
+                    # 셀 라벨
+                    if name == 'Blank':
+                        label = ''
+                    elif name in ('Stack', 'StackLock', 'Ice') and 'Stacks' in tile:
+                        stacks = tile['Stacks']
+                        # 칩 색 이니셜 표시
+                        label = '+'.join(COLOR_MAP.get(c,'?')[0] for c in stacks[:3])
+                        if len(stacks) > 3:
+                            label += f'+{len(stacks)-3}↑'
+                    elif name in ('Lock', 'Plank') and 'Level' in tile:
+                        label = f"L{tile['Level']}"
+                    elif name == 'StackLock' and 'UnlockLevel' in tile:
+                        label = f"SL\n{tile['UnlockLevel']}"
+                    else:
+                        label = name[:2]
+
+                    # 좌표 항상 표시 (편집기에선 유용)
+                    coord_label = f"({y},{x})\n{label}"
+                    font_color  = 'white' if tt not in (0,) else '#444'
+
+                    fig_e.add_annotation(
+                        x=cx, y=cy, text=coord_label,
+                        showarrow=False,
+                        font=dict(size=9, color=font_color),
+                        align='center'
+                    )
+
+            fig_e.update_layout(
+                height=560,
+                margin=dict(l=10, r=10, t=10, b=10),
+                xaxis=dict(visible=False, scaleanchor='y'),
+                yaxis=dict(visible=False),
+                plot_bgcolor=T["grid_bg"],
+                paper_bgcolor=T["grid_bg"],
+                showlegend=False
+            )
+            st.plotly_chart(fig_e, use_container_width=True)
+
+            # 타일 범례
+            st.markdown("**타일 범례**")
+            legend_html = "".join([
+                f'<span style="background:{HEX_COLORS[t]};color:{"#333" if t=="Normal" else "white"};'
+                f'border-radius:4px;padding:2px 8px;margin:3px;font-size:11px;display:inline-block;">'
+                f'{t}</span>'
+                for t in HEX_COLORS if t != 'Blank'
+            ])
+            st.markdown(legend_html, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════
 # 탭 4 — 설정
@@ -848,8 +1044,8 @@ elif page == "🔧 4. 설정":
             hole=0.4, textinfo='label+percent',
             textfont=dict(size=10)
         ))
-        fig_pie.update_layout(height=350,paper_bgcolor='#0d1117',
-                              font_color='#e6edf3',margin=dict(l=10,r=10,t=10,b=10),
+        fig_pie.update_layout(height=350,paper_bgcolor=T["plot_bg"],
+                              font_color=T["text"],margin=dict(l=10,r=10,t=10,b=10),
                               showlegend=False)
         st.plotly_chart(fig_pie,use_container_width=True)
 
@@ -866,9 +1062,9 @@ elif page == "🔧 4. 설정":
                 name='통합 이동평균',line=dict(color='#3fb950',width=2)))
             fig_prev.add_trace(go.Scatter(x=np.arange(1,501),y=target_curve(np.arange(1,501)),
                 name='목표 곡선',line=dict(color='#58a6ff',width=1.5,dash='dash'),opacity=0.6))
-            fig_prev.update_layout(height=280,plot_bgcolor='#0d1117',paper_bgcolor='#0d1117',
-                font_color='#e6edf3',xaxis_title='레벨',
-                xaxis=dict(gridcolor='#21262d'),yaxis=dict(range=[0,105],gridcolor='#21262d'),
+            fig_prev.update_layout(height=280,plot_bgcolor=T["plot_bg"],paper_bgcolor=T["plot_bg"],
+                font_color=T["text"],xaxis_title='레벨',
+                xaxis=dict(gridcolor=T["grid_line"]),yaxis=dict(range=[0,105],gridcolor=T["grid_line"]),
                 legend=dict(orientation='h',y=1.1,bgcolor='rgba(0,0,0,0)'),
                 margin=dict(l=10,r=10,t=30,b=10))
             st.plotly_chart(fig_prev,use_container_width=True)
@@ -1001,9 +1197,9 @@ elif page == "🗄️ 5. 아카이브":
                             name=f"{vname} (board:{wb}%)",
                             line=dict(color=colors[i],width=2)
                         ))
-                fig_cmp.update_layout(height=350,plot_bgcolor='#0d1117',paper_bgcolor='#0d1117',
-                    font_color='#e6edf3',xaxis_title='레벨',
-                    xaxis=dict(gridcolor='#21262d'),yaxis=dict(range=[0,105],gridcolor='#21262d'),
+                fig_cmp.update_layout(height=350,plot_bgcolor=T["plot_bg"],paper_bgcolor=T["plot_bg"],
+                    font_color=T["text"],xaxis_title='레벨',
+                    xaxis=dict(gridcolor=T["grid_line"]),yaxis=dict(range=[0,105],gridcolor=T["grid_line"]),
                     legend=dict(orientation='h',y=1.1,bgcolor='rgba(0,0,0,0)'),
                     margin=dict(l=10,r=10,t=30,b=10))
                 st.plotly_chart(fig_cmp,use_container_width=True)
