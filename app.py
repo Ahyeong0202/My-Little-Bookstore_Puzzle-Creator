@@ -569,135 +569,117 @@ $$\text{최종값} = \text{clip}(\text{target}, 0, 100)$$
 # ══════════════════════════════════════════════════════
 elif page == "📊 2. 난이도 분석":
     st.title("📊 난이도 분석")
-    st.caption("시장 데이터 board_score vs 우리 게임 board_score 비교 (같은 H1 가중치 기준)")
+    st.caption("시장 데이터 기준선 vs 우리 게임 통합 난이도 비교 + 가중치 조정")
 
     intg   = st.session_state.intg_df
     market = st.session_state.market_df
 
-    # ── 시장 데이터 board_score 계산 (우리 H1 가중치 동일 적용)
-    # ── 현재 세션 가중치 사용 (4번 탭에서 조정한 값)
-    W_H1_DEFAULT = {
-        "H1_1":(8,True),"H1_2":(12,True),"H1_3":(10,True),"H1_4":(8,True),
-        "H1_5":(10,False),"H1_6":(12,False),"H1_7":(12,False),
-        "H1_8":(8,False),"H1_9":(8,False),"H1_10":(5,False),"H1_11":(5,False),
-        "H1_12":(6,False),"H1_13":(4,True),"H1_14":(4,True),"H1_15":(4,True),
-    }
-    # 4번 탭에서 조정한 가중치가 있으면 그걸 사용
-    saved_weights = st.session_state.get("h1_weights", {})
-    W_H1_CURRENT = {
-        k: (saved_weights.get(k, v[0]), v[1])
-        for k, v in W_H1_DEFAULT.items()
-    }
+    # ── 상단: 비교 차트
+    st.subheader("📈 난이도 곡선 비교")
 
-    MK_COL_MAP = {
-        "H1_1":"H1-1","H1_2":"H1-2","H1_3":"H1-3 ",
-        "H1_4":"H1-4","H1_5":"H1-5","H1_6":"H1-6 ",
-        "H1_7":"H1-7 ","H1_8":"H1-8 ","H1_9":"H1-9 ",
-        "H1_10":"H1-10 ","H1_11":"H1-11 ","H1_12":"H1-12 ",
-        "H1_13":"H1-13 ","H1_14":"H1-14",
-    }
+    n_all  = np.arange(1, 501)
+    target = target_curve(n_all)
+    base   = baseline_curve(n_all)
 
-    def calc_market_board(mk_df, w_h1, normalize=True):
-        """
-        normalize=True  → 각 H1 컬럼을 0~1 min-max 정규화 후 가중합 → 0~100
-        normalize=False → 각 H1 컬럼 원시값 그대로 가중합 → 0~100 재스케일
-        """
-        df = mk_df.copy()
-        tw = sum(v[0] for v in w_h1.values())
-        score = pd.Series(0.0, index=df.index)
-
-        for key, (w, inv) in w_h1.items():
-            col = MK_COL_MAP.get(key)
-            if col and col in df.columns:
-                v = pd.to_numeric(df[col], errors="coerce").fillna(0)
-                if normalize:
-                    # 0~1 정규화
-                    rng = v.max() - v.min()
-                    vn = (v - v.min()) / rng if rng > 0 else pd.Series(0.0, index=df.index)
-                    score += (1 - vn if inv else vn) * w
-                else:
-                    # 원시값 그대로 (역수 방향은 max-v로 반영)
-                    mx = v.max()
-                    score += ((mx - v) if inv else v) * w
-
-        if normalize:
-            # 가중합 → 0~100
-            return (score / tw * 100).round(1)
-        else:
-            # 원시값 기준 → 전체 범위로 재스케일해서 비교 가능하게
-            mn, mx = score.min(), score.max()
-            return ((score - mn) / (mx - mn) * 100).round(1) if mx > mn else score
-
-    # ── 뷰 모드
-    view_mode = st.radio("비교 기준",
-        ["📐 원시값 기준", "📊 정규화 기준 (0~100)"], horizontal=True)
-    use_norm = "정규화" in view_mode
-
-    # 현재 가중치 출처 표시
-    if saved_weights:
-        st.caption("⚙️ 4번 탭에서 조정한 가중치 적용 중")
-    else:
-        st.caption("⚙️ 기본 가중치 적용 중 (4번 탭 → 설정에서 변경 가능)")
-
-    # ── 상단: board_score 비교 차트
-    st.subheader("📈 board_score 비교 (동일 H1 가중치)")
-    st.caption("시장 데이터(Lv1~100)와 우리 게임을 같은 공식으로 계산한 판 모양 난이도예요.")
-
-    n_all = np.arange(1, 501)
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=n_all, y=baseline_curve(n_all), name="기준선 baseline(N)",
-        line=dict(color="#58a6ff", width=1.5, dash="dot"), opacity=0.5))
-    fig.add_trace(go.Scatter(x=n_all, y=target_curve(n_all), name="목표 곡선 target(N)",
-        line=dict(color="#58a6ff", width=2), opacity=0.8))
 
+    # 목표 곡선 (공식)
+    fig.add_trace(go.Scatter(
+        x=n_all, y=base, name="기준선 baseline(N)",
+        line=dict(color="#58a6ff", width=1.5, dash="dot"), opacity=0.6
+    ))
+    fig.add_trace(go.Scatter(
+        x=n_all, y=target, name="목표 곡선 target(N)",
+        line=dict(color="#58a6ff", width=2), opacity=0.9
+    ))
+
+    # 시장 데이터 (원시 H1 값 → 우리 가중치 적용)
     if market is not None:
         try:
             mk = market.copy()
             mk.columns = [str(c).strip() for c in mk.columns]
             mk = mk[mk["Stage"].apply(lambda x: str(x).strip().lstrip("-").isdigit())].copy()
             mk["Stage"] = mk["Stage"].astype(int)
-            mk_board = calc_market_board(mk, W_H1_CURRENT, normalize=use_norm)
-            mk_sm    = mk_board.rolling(5, center=True, min_periods=1).mean()
-            fig.add_trace(go.Scatter(x=mk["Stage"], y=mk_board.tolist(),
-                name="시장 board_score (원시)", mode="markers+lines",
+
+            MK_COL_MAP = {
+                "H1_1":"H1-1","H1_2":"H1-2","H1_3":"H1-3 ",
+                "H1_4":"H1-4","H1_5":"H1-5","H1_6":"H1-6 ",
+                "H1_7":"H1-7 ","H1_8":"H1-8 ","H1_9":"H1-9 ",
+                "H1_12":"H1-12 ","H1_13":"H1-13 ","H1_14":"H1-14",
+            }
+            W_H1 = st.session_state.get("h1_weights", {
+                "H1_1":8,"H1_2":12,"H1_3":10,"H1_4":8,"H1_5":10,
+                "H1_6":12,"H1_7":12,"H1_8":8,"H1_9":8,"H1_10":5,
+                "H1_11":5,"H1_12":6,"H1_13":4,"H1_14":4,"H1_15":4,
+            })
+            W_DIR = {
+                "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
+                "H1_6":False,"H1_7":False,"H1_8":False,"H1_9":False,"H1_10":False,
+                "H1_11":False,"H1_12":False,"H1_13":True,"H1_14":True,"H1_15":True,
+            }
+            tw = sum(W_H1.values())
+            score = pd.Series(0.0, index=mk.index)
+            for key, w in W_H1.items():
+                col = MK_COL_MAP.get(key)
+                if col and col in mk.columns:
+                    v = pd.to_numeric(mk[col], errors="coerce").fillna(0)
+                    rng = v.max() - v.min()
+                    vn = (v - v.min()) / rng if rng > 0 else pd.Series(0.0, index=mk.index)
+                    score += (1 - vn if W_DIR.get(key, False) else vn) * w
+            mk["market_board"] = (score / tw * 100).round(1)
+            mk_sm = mk["market_board"].rolling(5, center=True, min_periods=1).mean()
+
+            fig.add_trace(go.Scatter(
+                x=mk["Stage"], y=mk["market_board"].tolist(),
+                name="시장 board_score (원시)",
+                mode="markers+lines",
                 marker=dict(size=4, color="#f78166"),
-                line=dict(color="#f78166", width=1), opacity=0.6))
-            fig.add_trace(go.Scatter(x=mk["Stage"], y=mk_sm.tolist(),
+                line=dict(color="#f78166", width=1), opacity=0.5
+            ))
+            fig.add_trace(go.Scatter(
+                x=mk["Stage"], y=mk_sm.tolist(),
                 name="시장 board_score (이동평균)",
-                line=dict(color="#f78166", width=2.5)))
+                line=dict(color="#f78166", width=2.5)
+            ))
         except Exception as e:
             st.warning(f"시장 데이터 파싱 오류: {e}")
 
+    # 우리 게임 통합 난이도
     if intg is not None:
+        w_b = st.session_state.w_board
+        w_g = st.session_state.w_gameplay
+        custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
+        custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
         x_lv = list(range(1, len(intg)+1))
-        bs = intg["board_score"]
-        bs_sm = bs.rolling(5, center=True, min_periods=1).mean()
-        fig.add_trace(go.Scatter(x=x_lv, y=bs.tolist(), name="우리 board_score (원시)",
-            line=dict(color="#3fb950", width=1), opacity=0.4))
-        fig.add_trace(go.Scatter(x=x_lv, y=bs_sm.tolist(), name="우리 board_score (이동평균)",
-            line=dict(color="#3fb950", width=2.5)))
+        fig.add_trace(go.Scatter(
+            x=x_lv, y=custom.tolist(),
+            name="우리 게임 (원시)", line=dict(color="#3fb950", width=1), opacity=0.4
+        ))
+        fig.add_trace(go.Scatter(
+            x=x_lv, y=custom_sm.tolist(),
+            name="우리 게임 (이동평균)",
+            line=dict(color="#3fb950", width=3)
+        ))
 
-    fig.update_layout(height=420, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-        font_color=T["text"], xaxis_title="레벨", yaxis_title="board_score",
+    fig.update_layout(
+        height=440, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
+        font_color=T["text"], xaxis_title="레벨", yaxis_title="난이도 점수",
         yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
         xaxis=dict(gridcolor=T["grid_line"]),
-        legend=dict(orientation="h", y=1.15, bgcolor="rgba(0,0,0,0)"),
-        margin=dict(l=10,r=10,t=50,b=10))
+        legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
+        margin=dict(l=10,r=10,t=50,b=10)
+    )
     st.plotly_chart(fig, use_container_width=True)
 
     if market is None:
-        st.info("💡 사이드바에서 시장 데이터 CSV를 업로드하면 실측값이 표시됩니다.")
+        st.info("💡 사이드바에서 시장 데이터 CSV를 업로드하면 실측값이 차트에 표시됩니다.")
     if intg is None:
         st.info("💡 사이드바에서 integrated_difficulty.csv를 업로드하면 우리 게임 곡선이 표시됩니다.")
 
     st.markdown("---")
 
-    # ── 중단: 세 탭
-    inner_tab1, inner_tab2, inner_tab3 = st.tabs([
-        "📋 시장 데이터 원본",
-        "🔀 시장 vs 우리 게임 상세 비교",
-        "📉 우리 난이도 구간 분석",
-    ])
+    # ── 중단: 두 탭
+    inner_tab1, inner_tab2 = st.tabs(["📋 시장 데이터 원본", "📉 우리 난이도 구간 분석"])
 
     with inner_tab1:
         if market is None:
@@ -709,74 +691,28 @@ elif page == "📊 2. 난이도 분석":
             st.dataframe(mk_show.reset_index(drop=True), use_container_width=True, height=350)
             st.markdown("**H1 지표별 원시값 추이**")
             avail = [c for c in ["H1-1","H1-2","H1-3 ","H1-4","H1-5",
-                                  "H1-6 ","H1-7 ","H1-8 ","H1-9 ","H1-12 "]
+                                  "H1-6 ","H1-7 ","H1-8 ","H1-9 "]
                      if c in mk_show.columns]
             sel = st.multiselect("표시할 지표", avail, default=avail[:3])
             if sel:
                 fig2 = go.Figure()
                 for col in sel:
                     vals = pd.to_numeric(mk_show[col], errors="coerce")
-                    fig2.add_trace(go.Scatter(x=mk_show["Stage"].astype(int), y=vals,
-                        name=col.strip(), mode="lines+markers", marker=dict(size=4)))
-                fig2.update_layout(height=320, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
+                    fig2.add_trace(go.Scatter(
+                        x=mk_show["Stage"].astype(int), y=vals,
+                        name=col.strip(), mode="lines+markers", marker=dict(size=4)
+                    ))
+                fig2.update_layout(
+                    height=320, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
                     font_color=T["text"], xaxis_title="레벨",
-                    xaxis=dict(gridcolor=T["grid_line"]), yaxis=dict(gridcolor=T["grid_line"]),
+                    xaxis=dict(gridcolor=T["grid_line"]),
+                    yaxis=dict(gridcolor=T["grid_line"]),
                     legend=dict(orientation="h", y=1.1, bgcolor="rgba(0,0,0,0)"),
-                    margin=dict(l=10,r=10,t=30,b=10))
+                    margin=dict(l=10,r=10,t=30,b=10)
+                )
                 st.plotly_chart(fig2, use_container_width=True)
 
     with inner_tab2:
-        st.caption("시장(Lv1~100)과 우리 게임(Lv1~100)을 같은 구간에서 비교해요.")
-        if market is None or intg is None:
-            st.warning("시장 데이터 CSV와 integrated_difficulty.csv 둘 다 필요해요.")
-        else:
-            mk2 = market.copy()
-            mk2.columns = [str(c).strip() for c in mk2.columns]
-            mk2 = mk2[mk2["Stage"].apply(
-                lambda x: str(x).strip().lstrip("-").isdigit())].copy()
-            mk2["Stage"] = mk2["Stage"].astype(int)
-            mk_raw  = calc_market_board(mk2, W_H1_CURRENT, normalize=False)
-            mk_norm = calc_market_board(mk2, W_H1_CURRENT, normalize=True)
-            our_bs  = intg["board_score"].iloc[:100]
-            x_mk    = mk2["Stage"].tolist()
-            x_our   = list(range(1, min(101, len(intg)+1)))
-
-            mode_sel = st.radio("표시 모드", ["원시값", "정규화", "둘 다"], horizontal=True)
-            fig3 = go.Figure()
-            if mode_sel in ("원시값", "둘 다"):
-                fig3.add_trace(go.Scatter(x=x_mk, y=mk_raw.tolist(),
-                    name="시장 board_score (원시)", line=dict(color="#f78166", width=2)))
-                fig3.add_trace(go.Scatter(x=x_our, y=our_bs.tolist(),
-                    name="우리 board_score (원시)", line=dict(color="#3fb950", width=2)))
-            if mode_sel in ("정규화", "둘 다"):
-                fig3.add_trace(go.Scatter(x=x_mk, y=mk_norm.tolist(),
-                    name="시장 board_score (정규화)",
-                    line=dict(color="#ffa07a", width=2, dash="dash")))
-                our_norm = our_bs.pipe(
-                    lambda s: ((s-s.min())/(s.max()-s.min())*100) if s.max()>s.min() else s)
-                fig3.add_trace(go.Scatter(x=x_our, y=our_norm.tolist(),
-                    name="우리 board_score (정규화)",
-                    line=dict(color="#90ee90", width=2, dash="dash")))
-            fig3.update_layout(height=380, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-                font_color=T["text"], xaxis_title="레벨", yaxis_title="board_score",
-                yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
-                xaxis=dict(gridcolor=T["grid_line"]),
-                legend=dict(orientation="h", y=1.1, bgcolor="rgba(0,0,0,0)"),
-                margin=dict(l=10,r=10,t=40,b=10))
-            st.plotly_chart(fig3, use_container_width=True)
-
-            st.markdown("**구간별 평균 비교 (Lv1~100)**")
-            comp_rows = []
-            for lo, hi in [(1,25),(26,50),(51,75),(76,100)]:
-                idx = mk2[(mk2["Stage"]>=lo)&(mk2["Stage"]<=hi)].index
-                our_sub = intg["board_score"].iloc[lo-1:hi]
-                comp_rows.append({"구간":f"Lv{lo}-{hi}",
-                    "시장 원시":round(mk_raw[idx].mean(),1) if len(idx)>0 else "-",
-                    "시장 정규화":round(mk_norm[idx].mean(),1) if len(idx)>0 else "-",
-                    "우리 board":round(our_sub.mean(),1) if len(our_sub)>0 else "-"})
-            st.dataframe(pd.DataFrame(comp_rows), use_container_width=True)
-
-    with inner_tab3:
         if intg is None:
             st.warning("사이드바에서 integrated_difficulty.csv를 업로드해주세요.")
         else:
@@ -796,16 +732,18 @@ elif page == "📊 2. 난이도 분석":
                     "최고":round(s2["integrated"].max(),1),
                     "최저":round(s2["integrated"].min(),1)})
             zdf = pd.DataFrame(zones)
-            fig4 = go.Figure()
-            fig4.add_trace(go.Bar(x=zdf["구간"],y=zdf["판 모양"],name="판 모양",marker_color="#fa8c16"))
-            fig4.add_trace(go.Bar(x=zdf["구간"],y=zdf["게임 진행"],name="게임 진행",marker_color="#1890ff"))
-            fig4.add_trace(go.Scatter(x=zdf["구간"],y=zdf["통합 평균"],mode="lines+markers",
+            fig3 = go.Figure()
+            fig3.add_trace(go.Bar(x=zdf["구간"],y=zdf["판 모양"],name="판 모양",marker_color="#fa8c16"))
+            fig3.add_trace(go.Bar(x=zdf["구간"],y=zdf["게임 진행"],name="게임 진행",marker_color="#1890ff"))
+            fig3.add_trace(go.Scatter(x=zdf["구간"],y=zdf["통합 평균"],mode="lines+markers",
                 name="통합 평균",line=dict(color="#3fb950",width=2)))
-            fig4.update_layout(height=300,barmode="group",
-                plot_bgcolor=T["plot_bg"],paper_bgcolor=T["plot_bg"],
-                font_color=T["text"],yaxis=dict(range=[0,100],gridcolor=T["grid_line"]),
-                xaxis=dict(gridcolor=T["grid_line"]),margin=dict(l=10,r=10,t=10,b=10))
-            st.plotly_chart(fig4, use_container_width=True)
+            fig3.update_layout(height=300, barmode="group",
+                plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
+                font_color=T["text"],
+                yaxis=dict(range=[0,100], gridcolor=T["grid_line"]),
+                xaxis=dict(gridcolor=T["grid_line"]),
+                margin=dict(l=10,r=10,t=10,b=10))
+            st.plotly_chart(fig3, use_container_width=True)
             st.dataframe(zdf, use_container_width=True)
 
     st.markdown("---")
@@ -818,12 +756,12 @@ elif page == "📊 2. 난이도 분석":
         st.session_state.w_board    = w_b
         st.session_state.w_gameplay = w_g
         st.caption(f"판 모양 **{w_b}%** : 게임 진행 **{w_g}%**")
-        custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g)/100
+        custom    = (intg["board_score"]*w_b + intg["gameplay_score"]*w_g) / 100
         custom_sm = custom.rolling(5, center=True, min_periods=1).mean()
         result_df = intg[["board_score","gameplay_score"]].copy()
         result_df["custom_integrated"] = custom.round(2)
         result_df["custom_smoothed"]   = custom_sm.round(2)
-        result_df.insert(0,"level", range(1, len(result_df)+1))
+        result_df.insert(0, "level", range(1, len(result_df)+1))
         dc1, dc2 = st.columns(2)
         dc1.download_button("📥 CSV 다운로드", df_to_csv_bytes(result_df),
             f"integrated_w{w_b}_{w_g}.csv", "text/csv", use_container_width=True)
@@ -833,7 +771,6 @@ elif page == "📊 2. 난이도 분석":
         st.info("integrated_difficulty.csv를 사이드바에서 업로드하면 가중치를 조정할 수 있습니다.")
 
 
-# 탭 3 — 판 모양 뷰어
 # ══════════════════════════════════════════════════════
 elif page == "🗺️ 3. 판 모양 뷰어":
     st.title("🗺️ 판 모양 뷰어 / JSON 생성기")
