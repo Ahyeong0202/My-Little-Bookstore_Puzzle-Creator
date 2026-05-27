@@ -849,7 +849,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
         # ── 소스 선택
         vc1, vc2 = st.columns([1,3])
         with vc1:
-            src = st.radio("소스", ["레벨 번호","JSON 업로드"], horizontal=True)
+            src = st.radio("소스", ["레벨 번호", "난이도 선택", "JSON 업로드"], horizontal=True)
             data = None
             fname_default = "N_001.json"
             if src == "레벨 번호":
@@ -858,6 +858,45 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                 data = load_level_local(int(lv))
                 if data is None:
                     st.warning(f"N_{lv:03d}.json 없음 — JSON 업로드 사용")
+
+            elif src == "난이도 선택":
+                intg_df = st.session_state.intg_df
+                if intg_df is None:
+                    st.warning("사이드바에서 integrated_difficulty.csv를 업로드해주세요.")
+                else:
+                    GRADE_RANGES = {
+                        '전체':        (0,   100),
+                        '🔵 매우쉬움': (0,    25),
+                        '🟢 쉬움':     (25,   45),
+                        '🟡 보통':     (45,   60),
+                        '🟠 어려움':   (60,   75),
+                        '🔴 매우어려움':(75,  100),
+                    }
+                    grade_sel = st.selectbox("등급 필터", list(GRADE_RANGES.keys()))
+                    lo, hi = GRADE_RANGES[grade_sel]
+
+                    # 해당 등급 레벨 필터링 + 난이도 순 정렬
+                    filtered = intg_df.copy()
+                    filtered['lv'] = range(1, len(filtered) + 1)
+                    mask = (filtered['integrated'] >= lo) & (filtered['integrated'] < hi)
+                    if grade_sel == '전체':
+                        mask = pd.Series([True] * len(filtered))
+                    filtered = filtered[mask].sort_values('integrated')
+
+                    if filtered.empty:
+                        st.info("해당 등급의 레벨이 없습니다.")
+                    else:
+                        options = [
+                            f"Lv {int(r['lv']):03d} — {r['integrated']:.1f}점"
+                            for _, r in filtered.iterrows()
+                        ]
+                        sel_opt = st.selectbox("레벨 선택", options)
+                        sel_lv  = int(sel_opt.split()[1])
+                        fname_default = f"N_{sel_lv:03d}.json"
+                        data = load_level_local(sel_lv)
+                        if data is None:
+                            st.warning(f"N_{sel_lv:03d}.json 없음")
+
             else:
                 uj = st.file_uploader("JSON 파일", type=["json"], key="uj_view")
                 if uj:
