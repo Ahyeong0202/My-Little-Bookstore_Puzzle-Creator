@@ -1239,6 +1239,68 @@ elif page == "🗺️ 3. 판 모양 뷰어":
             )
             st.plotly_chart(fig_e, use_container_width=True)
 
+            # ── 실시간 난이도 계산
+            level_data_now = {
+                'XCells': X_e, 'YCells': Y_e,
+                'Tiles': st.session_state.grid_tiles
+            }
+            h1_now = analyze_level(level_data_now)
+
+            W_H1_now = st.session_state.get("h1_weights", {
+                "H1_1":8,"H1_2":12,"H1_3":10,"H1_4":8,"H1_5":10,
+                "H1_6":12,"H1_7":12,"H1_8":8,"H1_9":8,"H1_10":5,
+                "H1_11":5,"H1_12":6,"H1_13":4,"H1_14":4,"H1_15":4,
+            })
+            W_DIR_now = {
+                "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
+                "H1_6":False,"H1_7":False,"H1_8":False,"H1_9":False,"H1_10":False,
+                "H1_11":False,"H1_12":False,"H1_13":True,"H1_14":True,"H1_15":True,
+            }
+            tw_now = sum(W_H1_now.values())
+            score_now = 0.0
+
+            # 시장 데이터 기준 정규화를 위한 참조값 (근사치)
+            H1_REF_MIN = {"H1_1":4,"H1_2":0,"H1_3":0,"H1_4":0,"H1_5":0,
+                          "H1_6":0,"H1_7":0,"H1_8":0,"H1_9":0,"H1_10":0,
+                          "H1_11":0,"H1_12":0,"H1_13":0,"H1_14":0,"H1_15":0}
+            H1_REF_MAX = {"H1_1":64,"H1_2":200,"H1_3":30,"H1_4":80,"H1_5":15,
+                          "H1_6":80,"H1_7":60,"H1_8":60,"H1_9":20,"H1_10":40,
+                          "H1_11":10,"H1_12":5000,"H1_13":20,"H1_14":3,"H1_15":40}
+
+            for k, w in W_H1_now.items():
+                v   = h1_now.get(k, 0)
+                lo  = H1_REF_MIN.get(k, 0)
+                hi  = H1_REF_MAX.get(k, 1)
+                rng_v = hi - lo if hi > lo else 1
+                vn  = max(0.0, min(1.0, (v - lo) / rng_v))
+                if W_DIR_now.get(k, False):
+                    vn = 1 - vn
+                score_now += vn * w
+
+            board_score_now = round(score_now / tw_now * 100, 1)
+            grade_now = ('매우쉬움' if board_score_now < 25 else
+                         '쉬움'     if board_score_now < 45 else
+                         '보통'     if board_score_now < 60 else
+                         '어려움'   if board_score_now < 75 else '매우어려움')
+            grade_color = {'매우쉬움':'#1890FF','쉬움':'#52C41A','보통':'#FADB14',
+                           '어려움':'#FA8C16','매우어려움':'#F5222D'}[grade_now]
+            grade_emoji = {'매우쉬움':'🔵','쉬움':'🟢','보통':'🟡',
+                           '어려움':'🟠','매우어려움':'🔴'}[grade_now]
+
+            st.markdown(
+                f"""<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+                border-left:4px solid {grade_color};border-radius:10px;
+                padding:12px 16px;margin:12px 0;">
+                <div style="font-size:12px;color:#9ca3af;margin-bottom:4px;">📐 현재 판 모양 난이도</div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <span style="font-size:28px;font-weight:700;color:{grade_color};">{board_score_now}</span>
+                  <span style="font-size:18px;">{grade_emoji}</span>
+                  <span style="font-size:16px;font-weight:600;color:{grade_color};">{grade_now}</span>
+                </div>
+                </div>""",
+                unsafe_allow_html=True
+            )
+
             # 타일 범례
             st.markdown("**타일 범례**")
             legend_html = "".join([
