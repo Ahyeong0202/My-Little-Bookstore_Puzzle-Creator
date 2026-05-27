@@ -799,41 +799,9 @@ elif page == "📊 2. 난이도 분석":
 
     st.markdown("---")
 
-    # ── 하단: 두 탭
-    inner_tab1, inner_tab2 = st.tabs(["📋 시장 데이터 원본", "📉 우리 난이도 구간 분석"])
-
-    with inner_tab1:
-        if market is None:
-            st.warning("사이드바에서 시장 데이터 CSV를 업로드해주세요.")
-        else:
-            mk_show = market.copy()
-            mk_show = mk_show[mk_show["Stage"].apply(
-                lambda x: str(x).strip().lstrip("-").isdigit())]
-            st.dataframe(mk_show.reset_index(drop=True), use_container_width=True, height=350)
-            st.markdown("**H1 지표별 원시값 추이**")
-            avail = [c for c in ["H1-1","H1-2","H1-3 ","H1-4","H1-5",
-                                  "H1-6 ","H1-7 ","H1-8 ","H1-9 "]
-                     if c in mk_show.columns]
-            sel = st.multiselect("표시할 지표", avail, default=avail[:3])
-            if sel:
-                fig2 = go.Figure()
-                for col in sel:
-                    vals = pd.to_numeric(mk_show[col], errors="coerce")
-                    fig2.add_trace(go.Scatter(
-                        x=mk_show["Stage"].astype(int), y=vals,
-                        name=col.strip(), mode="lines+markers", marker=dict(size=4)
-                    ))
-                fig2.update_layout(
-                    height=320, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-                    font_color=T["text"], xaxis_title="레벨",
-                    xaxis=dict(gridcolor=T["grid_line"]),
-                    yaxis=dict(gridcolor=T["grid_line"]),
-                    legend=dict(orientation="h", y=1.1, bgcolor="rgba(0,0,0,0)"),
-                    margin=dict(l=10,r=10,t=30,b=10)
-                )
-                st.plotly_chart(fig2, use_container_width=True)
-
-    with inner_tab2:
+    # ── 하단: 우리 난이도 구간 분석
+    st.subheader("📉 우리 난이도 구간 분석")
+    if True:
         if intg is None:
             st.warning("사이드바에서 integrated_difficulty.csv를 업로드해주세요.")
         else:
