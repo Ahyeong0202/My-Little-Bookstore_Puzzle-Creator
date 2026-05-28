@@ -1,25 +1,20 @@
 {
-  "Timestamp": 1778220483785,
+  "Timestamp": 1778220483784,
   "GameType": 0,
   "GridOrientation": 0,
-  "XCells": 4,
-  "YCells": 5,
+  "XCells": 7,
+  "YCells": 7,
   "Tiles": [
     [
       {
-        "TileType": 0
+        "TileType": 1
+      },
+      {
+        "TileType": 1
       },
       {
         "TileType": 0
       },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
       {
         "TileType": 0
       },
@@ -30,8 +25,54 @@
         "TileType": 2,
         "Stacks": [
           0,
-          1
+          6
         ]
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 0
@@ -39,34 +80,23 @@
     ],
     [
       {
-        "TileType": 1
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 2,
         "Stacks": [
-          0,
-          2
+          1,
+          0
         ]
-      },
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 2,
-        "Stacks": [
-          2,
-          0,
-          2,
-          1
-        ]
-      },
-      {
-        "TileType": 1
       },
       {
         "TileType": 0
@@ -77,6 +107,15 @@
     ],
     [
       {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
         "TileType": 0
       },
       {
@@ -87,6 +126,52 @@
       },
       {
         "TileType": 0
+      }
+    ],
+    [
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
       }
     ]
   ]

@@ -1,74 +1,31 @@
 {
-  "Timestamp": 1778220484167,
+  "Timestamp": 1778220484166,
   "GameType": 0,
   "GridOrientation": 0,
   "XCells": 5,
-  "YCells": 6,
+  "YCells": 5,
   "Tiles": [
     [
       {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
+        "TileType": 1
       },
       {
         "TileType": 2,
         "Stacks": [
           3,
-          0,
-          3,
-          6,
-          0
-        ]
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          6,
-          0,
-          2,
-          4,
           1,
           2
         ]
-      }
-    ],
-    [
+      },
       {
-        "TileType": 1
+        "TileType": 4,
+        "Level": 4
       },
       {
         "TileType": 0
       },
       {
         "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
       }
     ],
     [
@@ -79,56 +36,35 @@
         "TileType": 0
       },
       {
-        "TileType": 1
+        "TileType": 0
       },
       {
         "TileType": 0
       },
       {
-        "TileType": 3,
-        "Level": 1940
+        "TileType": 1
       }
     ],
     [
       {
-        "TileType": 5,
+        "TileType": 6,
+        "UnlockLevel": 73,
         "Stacks": [
           2,
-          5
-        ],
-        "UnlockLevel": 18
-      },
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
           3,
-          2,
           3,
-          5,
-          1,
           4
         ]
-      }
-    ],
-    [
+      },
       {
-        "TileType": 2,
+        "TileType": 6,
+        "UnlockLevel": 73,
         "Stacks": [
-          1,
-          2,
-          1,
-          1,
           4,
-          5
+          0,
+          3,
+          3,
+          2
         ]
       },
       {
@@ -136,6 +72,43 @@
       },
       {
         "TileType": 0
+      },
+      {
+        "TileType": 0
+      }
+    ],
+    [
+      {
+        "TileType": 3,
+        "Level": 63
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 2,
+        "Stacks": [
+          3,
+          3,
+          1
+        ]
       },
       {
         "TileType": 0
