@@ -10,32 +10,14 @@
         "TileType": 1
       },
       {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
         "TileType": 2,
         "Stacks": [
-          1,
-          1,
-          0
+          3,
+          0,
+          6
         ]
       },
       {
-        "TileType": 3,
-        "Level": 60
-      },
-      {
         "TileType": 0
       },
       {
@@ -54,6 +36,26 @@
       },
       {
         "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 4,
+        "Level": 2
+      },
+      {
+        "TileType": 2,
+        "Stacks": [
+          3,
+          0,
+          0
+        ]
       },
       {
         "TileType": 2,
@@ -67,27 +69,23 @@
       },
       {
         "TileType": 0
+      },
+      {
+        "TileType": 1
       }
     ],
     [
       {
-        "TileType": 0
+        "TileType": 1
       },
       {
         "TileType": 0
       },
       {
-        "TileType": 0
+        "TileType": 1
       },
       {
-        "TileType": 2,
-        "Stacks": [
-          6,
-          0,
-          3,
-          0,
-          6
-        ]
+        "TileType": 0
       },
       {
         "TileType": 1

@@ -13,52 +13,27 @@
         "TileType": 0
       },
       {
-        "TileType": 8
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 2,
         "Stacks": [
           6,
           0,
-          0,
-          1,
-          2
-        ]
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          2,
-          0,
-          1,
           1
         ]
       },
@@ -66,7 +41,7 @@
         "TileType": 0
       },
       {
-        "TileType": 0
+        "TileType": 1
       }
     ],
     [
@@ -81,16 +56,28 @@
         "Stacks": [
           2,
           6,
-          0
+          2
         ]
       },
       {
-        "TileType": 2,
-        "Stacks": [
-          0,
-          6,
-          3
-        ]
+        "TileType": 8
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 1

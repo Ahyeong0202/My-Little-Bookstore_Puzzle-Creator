@@ -10,13 +10,39 @@
         "TileType": 1
       },
       {
-        "TileType": 6,
-        "UnlockLevel": 87,
-        "Stacks": [
-          0,
-          2,
-          0
-        ]
+        "TileType": 1
+      },
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 3,
+        "Level": 37
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
       },
       {
         "TileType": 0
@@ -32,58 +58,6 @@
         ]
       },
       {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          3,
-          1,
-          1,
-          1
-        ]
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 4,
-        "Level": 4
-      },
-      {
-        "TileType": 0
-      },
-      {
         "TileType": 2,
         "Stacks": [
           1,
@@ -94,8 +68,34 @@
         ]
       },
       {
-        "TileType": 3,
-        "Level": 37
+        "TileType": 2,
+        "Stacks": [
+          3,
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 6,
+        "UnlockLevel": 87,
+        "Stacks": [
+          2,
+          0,
+          2,
+          0
+        ]
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 1

@@ -2,34 +2,57 @@
   "Timestamp": 1778220484152,
   "GameType": 0,
   "GridOrientation": 0,
-  "XCells": 3,
-  "YCells": 3,
+  "XCells": 5,
+  "YCells": 4,
   "Tiles": [
     [
       {
         "TileType": 1
       },
       {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
         "TileType": 2,
         "Stacks": [
+          3,
+          3,
           6,
-          4,
-          0,
-          5,
+          3,
           6,
-          4
+          2
         ]
       },
       {
-        "TileType": 5,
-        "UnlockLevel": 2,
+        "TileType": 6,
+        "UnlockLevel": 77,
         "Stacks": [
-          6,
+          4,
           2,
-          0,
+          4,
           1,
-          3
+          6
         ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
       }
     ],
     [
@@ -39,23 +62,22 @@
       {
         "TileType": 2,
         "Stacks": [
-          3,
           2,
           6,
-          6,
-          0,
-          5
+          5,
+          1,
+          2
         ]
       },
       {
-        "TileType": 6,
-        "UnlockLevel": 46,
-        "Stacks": [
-          1,
-          2,
-          2,
-          2
-        ]
+        "TileType": 4,
+        "Level": 3
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
       }
     ],
     [
@@ -63,25 +85,24 @@
         "TileType": 1
       },
       {
+        "TileType": 1
+      },
+      {
+        "TileType": 0
+      },
+      {
         "TileType": 6,
         "UnlockLevel": 46,
         "Stacks": [
-          1,
-          0,
-          6,
-          0,
+          2,
+          4,
+          2,
           5,
           3
         ]
       },
       {
-        "TileType": 2,
-        "Stacks": [
-          5,
-          2,
-          0,
-          0
-        ]
+        "TileType": 1
       }
     ]
   ]

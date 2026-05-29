@@ -13,78 +13,6 @@
         "TileType": 0
       },
       {
-        "TileType": 2,
-        "Stacks": [
-          0,
-          4,
-          0,
-          6,
-          4
-        ]
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          6,
-          0,
-          1,
-          1,
-          2
-        ]
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 3,
-        "Level": 69
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          2,
-          2,
-          3
-        ]
-      },
-      {
-        "TileType": 3,
-        "Level": 69
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
         "TileType": 0
       },
       {
@@ -95,6 +23,71 @@
           3,
           2
         ]
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 3,
+        "Level": 34
+      },
+      {
+        "TileType": 2,
+        "Stacks": [
+          6,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 2,
+        "Stacks": [
+          0,
+          2,
+          2,
+          3
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 1

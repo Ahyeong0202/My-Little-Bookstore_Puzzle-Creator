@@ -2,41 +2,59 @@
   "Timestamp": 1778220484178,
   "GameType": 0,
   "GridOrientation": 0,
-  "XCells": 3,
-  "YCells": 3,
+  "XCells": 5,
+  "YCells": 4,
   "Tiles": [
     [
       {
         "TileType": 1
       },
       {
-        "TileType": 4,
-        "Level": 4
+        "TileType": 7
       },
       {
-        "TileType": 2,
+        "TileType": 6,
+        "UnlockLevel": 112,
         "Stacks": [
           1,
-          4,
+          2,
           1,
-          6,
           3,
-          4
+          6,
+          3
         ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
       }
     ],
     [
       {
-        "TileType": 6,
-        "UnlockLevel": 48,
+        "TileType": 2,
         "Stacks": [
-          5,
+          1,
           0,
-          3,
-          6,
-          1
+          5,
+          5
         ]
       },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
       {
         "TileType": 0
       },
@@ -44,36 +62,52 @@
         "TileType": 2,
         "Stacks": [
           1,
-          0,
+          4,
+          3,
+          0
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 6,
+        "UnlockLevel": 48,
+        "Stacks": [
+          6,
+          3,
+          4,
+          1,
           5,
-          5
+          0
         ]
       }
     ],
     [
       {
-        "TileType": 1
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 6,
-        "UnlockLevel": 80,
+        "UnlockLevel": 48,
         "Stacks": [
-          5,
-          2,
-          3,
-          4,
-          5
-        ]
-      },
-      {
-        "TileType": 6,
-        "UnlockLevel": 112,
-        "Stacks": [
-          2,
           6,
-          0,
-          5
+          4,
+          5,
+          4
         ]
+      },
+      {
+        "TileType": 1
       }
     ]
   ]

@@ -21,6 +21,25 @@
       {
         "TileType": 2,
         "Stacks": [
+          1,
+          4,
+          4
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 2,
+        "Stacks": [
           4,
           0,
           0,
@@ -32,6 +51,9 @@
         "TileType": 0
       },
       {
+        "TileType": 0
+      },
+      {
         "TileType": 1
       }
     ],
@@ -40,12 +62,24 @@
         "TileType": 0
       },
       {
-        "TileType": 2,
-        "Stacks": [
-          1,
-          4,
-          4
-        ]
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 0
@@ -57,40 +91,6 @@
           0,
           6
         ]
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
       },
       {
         "TileType": 1

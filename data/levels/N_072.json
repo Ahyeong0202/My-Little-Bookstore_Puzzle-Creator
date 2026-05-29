@@ -13,7 +13,7 @@
         "TileType": 0
       },
       {
-        "TileType": 8
+        "TileType": 0
       },
       {
         "TileType": 0
@@ -27,7 +27,7 @@
         "TileType": 0
       },
       {
-        "TileType": 0
+        "TileType": 8
       },
       {
         "TileType": 2,
@@ -40,6 +40,14 @@
         ]
       },
       {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
         "TileType": 2,
         "Stacks": [
           0,
@@ -49,7 +57,16 @@
         ]
       },
       {
-        "TileType": 1
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       }
     ],
     [
@@ -64,29 +81,6 @@
       },
       {
         "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          1,
-          1,
-          6,
-          2
-        ]
       },
       {
         "TileType": 1

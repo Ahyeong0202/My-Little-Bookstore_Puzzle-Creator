@@ -2,8 +2,8 @@
   "Timestamp": 1778220483909,
   "GameType": 0,
   "GridOrientation": 0,
-  "XCells": 3,
-  "YCells": 3,
+  "XCells": 5,
+  "YCells": 4,
   "Tiles": [
     [
       {
@@ -14,66 +14,97 @@
         "Stacks": [
           4,
           0,
-          6,
-          5,
-          0,
-          3
-        ]
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 6,
-        "UnlockLevel": 46,
-        "Stacks": [
-          1,
-          0,
-          6,
-          0
-        ]
-      },
-      {
-        "TileType": 6,
-        "UnlockLevel": 77,
-        "Stacks": [
-          3,
-          5,
-          6,
-          1,
-          0,
-          0
-        ]
-      },
-      {
-        "TileType": 4,
-        "Level": 3
-      }
-    ],
-    [
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 2,
-        "Stacks": [
-          5,
-          1,
-          6,
+          4,
+          2,
           3,
           1
         ]
       },
       {
+        "TileType": 1
+      },
+      {
+        "TileType": 1
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 3,
+        "Level": 46
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
         "TileType": 2,
         "Stacks": [
-          0,
+          6,
           3,
-          1,
-          0
+          4,
+          2,
+          2
         ]
+      }
+    ],
+    [
+      {
+        "TileType": 6,
+        "UnlockLevel": 77,
+        "Stacks": [
+          6,
+          6,
+          3,
+          4,
+          6,
+          5
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 6,
+        "UnlockLevel": 46,
+        "Stacks": [
+          6,
+          4,
+          1,
+          6,
+          6,
+          5
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
       }
     ]
   ]

@@ -24,22 +24,16 @@
     ],
     [
       {
-        "TileType": 8
-      },
-      {
         "TileType": 0
       },
       {
         "TileType": 0
       },
       {
-        "TileType": 2,
-        "Stacks": [
-          1,
-          0,
-          0,
-          3
-        ]
+        "TileType": 0
+      },
+      {
+        "TileType": 0
       },
       {
         "TileType": 1
@@ -71,7 +65,7 @@
     ],
     [
       {
-        "TileType": 0
+        "TileType": 8
       },
       {
         "TileType": 0
@@ -80,7 +74,13 @@
         "TileType": 0
       },
       {
-        "TileType": 0
+        "TileType": 2,
+        "Stacks": [
+          1,
+          0,
+          0,
+          3
+        ]
       },
       {
         "TileType": 1
