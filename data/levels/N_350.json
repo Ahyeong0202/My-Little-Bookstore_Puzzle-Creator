@@ -10,15 +10,7 @@
         "TileType": 1
       },
       {
-        "TileType": 6,
-        "UnlockLevel": 55,
-        "Stacks": [
-          2,
-          2,
-          4,
-          0,
-          4
-        ]
+        "TileType": 0
       },
       {
         "TileType": 0
@@ -33,6 +25,42 @@
     [
       {
         "TileType": 0
+      },
+      {
+        "TileType": 6,
+        "UnlockLevel": 92,
+        "Stacks": [
+          5,
+          6,
+          0,
+          2,
+          0,
+          2
+        ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 6,
+        "UnlockLevel": 129,
+        "Stacks": [
+          0,
+          1,
+          5,
+          2,
+          5,
+          0,
+          1
+        ]
       },
       {
         "TileType": 0
@@ -41,39 +69,11 @@
         "TileType": 6,
         "UnlockLevel": 129,
         "Stacks": [
-          2,
-          2,
+          6,
           0,
           2,
-          0,
-          2,
-          4
-        ]
-      },
-      {
-        "TileType": 6,
-        "UnlockLevel": 92,
-        "Stacks": [
-          0,
-          4,
-          4,
-          2,
-          3,
-          3
-        ]
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 2,
-        "Stacks": [
-          0,
-          3,
-          2,
-          3,
+          1,
+          6,
           0
         ]
       },
@@ -81,12 +81,6 @@
         "TileType": 0
       },
       {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
         "TileType": 1
       }
     ],
@@ -95,18 +89,25 @@
         "TileType": 0
       },
       {
-        "TileType": 0
+        "TileType": 6,
+        "UnlockLevel": 92,
+        "Stacks": [
+          1,
+          6,
+          2,
+          2,
+          1,
+          1
+        ]
       },
       {
         "TileType": 6,
-        "UnlockLevel": 55,
+        "UnlockLevel": 92,
         "Stacks": [
-          4,
-          5,
-          0,
-          2,
-          4,
-          5,
+          6,
+          6,
+          6,
+          3,
           0
         ]
       },

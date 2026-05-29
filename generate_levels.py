@@ -185,7 +185,7 @@ def _make_hex_board(target_cells, max_dim=5, shape_seed=0):
     for (y,x) in playable: tiles[y][x] = {'TileType':0}
     return X, Y, tiles, playable
 
-def _build_board(lv, color_ints, board_target, rng, total_alloc):
+def _build_board(lv, color_ints, init_ints, board_target, rng, total_alloc):
     t = board_target/100.0
 
     # 판 크기: lv 기반 패턴 + 노이즈로 다양성 확보
@@ -220,7 +220,8 @@ def _build_board(lv, color_ints, board_target, rng, total_alloc):
     gimmick_pos=[(remaining[j],rng.choice(gimmick_types)) for j in range(n_gimmick)] if gimmick_types else []
 
     for (y,x) in stack_pos:
-        chips=[rng.choice(color_ints) for _ in range(rng.randint(chip_lo,chip_hi))] if color_ints else [0]
+        depth = rng.randint(chip_lo,chip_hi)
+        chips = [rng.choice(color_ints) for _ in range(depth-1)] + [rng.choice(init_ints)] if color_ints else [0]
         if 'StackLock' in avail and rng.random()<(0.1+board_target/200):
             ul=max(1,rng.choice([int(total_alloc*0.3),int(total_alloc*0.5),int(total_alloc*0.7)]))
             tiles[y][x]={'TileType':TILETYPE['StackLock'],'UnlockLevel':ul,'Stacks':chips}
@@ -233,10 +234,12 @@ def _build_board(lv, color_ints, board_target, rng, total_alloc):
         elif ttype=='Plank':
             tiles[y][x]={'TileType':TILETYPE['Plank'],'Level':rng.randint(1,4)}
         elif ttype=='Ice':
-            chips=[rng.choice(color_ints) for _ in range(rng.randint(chip_lo,chip_hi))] if color_ints else [0]
+            d=rng.randint(chip_lo,chip_hi)
+            chips=[rng.choice(color_ints) for _ in range(d-1)]+[rng.choice(init_ints)] if color_ints else [0]
             tiles[y][x]={'TileType':TILETYPE['Ice'],'UnlockLevel':rng.randint(1,3),'Stacks':chips}
         elif ttype=='StackLock':
-            chips=[rng.choice(color_ints) for _ in range(rng.randint(chip_lo,chip_hi))] if color_ints else [0]
+            d=rng.randint(chip_lo,chip_hi)
+            chips=[rng.choice(color_ints) for _ in range(d-1)]+[rng.choice(init_ints)] if color_ints else [0]
             tiles[y][x]={'TileType':TILETYPE['StackLock'],'UnlockLevel':max(1,int(total_alloc*0.3)),'Stacks':chips}
         elif ttype=='Grass':
             tiles[y][x]={'TileType':TILETYPE['Grass']}
@@ -247,19 +250,24 @@ def _build_board(lv, color_ints, board_target, rng, total_alloc):
 
 def generate_level(lv, tbl_row):
     t = target_diff(lv)
+    # 전체 풀: InitialAvailableColors + NewColorsMilestones
+    # 맨 위 칩(Stacks 마지막)은 InitialAvailableColors만 사용
     try: init_c=_parse_colors(tbl_row['InitialAvailableColors'])
     except: init_c=['Blue','Red']
     try: new_c=_parse_colors(tbl_row['NewColorsMilestones'])
     except: new_c=[]
     color_pool=list(dict.fromkeys(init_c+new_c))
     color_ints=[COLOR_MAP[c] for c in color_pool if c in COLOR_MAP]
+    init_ints=[COLOR_MAP[c] for c in init_c if c in COLOR_MAP]
+    if not color_ints: color_ints=[0,2]
+    if not init_ints: init_ints=color_ints
     try: total_alloc=int(tbl_row['TotalAllocation']) if not pd.isna(tbl_row['TotalAllocation']) else 100
     except: total_alloc=100
 
     best_data=None; best_bs=50.0; best_error=float('inf')
     for attempt in range(MAX_TRIES):
         rng=random.Random(42+lv*1000+attempt)
-        level_data=_build_board(lv,color_ints,t,rng,total_alloc)
+        level_data=_build_board(lv,color_ints,init_ints,t,rng,total_alloc)
         h1=analyze_level(level_data)
         bs=board_score(h1)
         error=abs(bs-t)

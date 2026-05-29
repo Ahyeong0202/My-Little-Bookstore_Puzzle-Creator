@@ -10,46 +10,43 @@
         "TileType": 1
       },
       {
-        "TileType": 6,
-        "UnlockLevel": 105,
+        "TileType": 2,
         "Stacks": [
           6,
-          5,
-          3,
+          2,
           1,
           1,
-          5
+          2
         ]
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
+      {
+        "TileType": 8
       },
       {
         "TileType": 6,
         "UnlockLevel": 45,
         "Stacks": [
-          6,
+          1,
           6,
           1,
-          4,
-          6
+          3,
+          3,
+          2
         ]
       },
       {
-        "TileType": 4,
-        "Level": 4
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
         "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 3,
-        "Level": 90
       },
       {
         "TileType": 0
@@ -60,32 +57,39 @@
     ],
     [
       {
+        "TileType": 6,
+        "UnlockLevel": 75,
+        "Stacks": [
+          5,
+          4,
+          2,
+          1
+        ]
+      },
+      {
         "TileType": 0
       },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 0
+      }
+    ],
+    [
       {
         "TileType": 2,
         "Stacks": [
-          4,
+          6,
+          6,
+          2,
           5,
-          1,
-          6,
-          6,
-          5
+          3,
+          1
         ]
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 0
       },
       {
         "TileType": 0
@@ -95,12 +99,14 @@
       },
       {
         "TileType": 6,
-        "UnlockLevel": 75,
+        "UnlockLevel": 105,
         "Stacks": [
           2,
-          0,
-          3,
-          6
+          6,
+          5,
+          5,
+          6,
+          0
         ]
       },
       {
