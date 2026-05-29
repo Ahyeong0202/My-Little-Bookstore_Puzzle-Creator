@@ -2,19 +2,27 @@
   "Timestamp": 1778220483784,
   "GameType": 0,
   "GridOrientation": 0,
-  "XCells": 7,
-  "YCells": 7,
+  "XCells": 5,
+  "YCells": 4,
   "Tiles": [
     [
       {
         "TileType": 1
       },
       {
-        "TileType": 1
+        "TileType": 0
       },
       {
         "TileType": 0
       },
+      {
+        "TileType": 0
+      },
+      {
+        "TileType": 1
+      }
+    ],
+    [
       {
         "TileType": 0
       },
@@ -24,31 +32,11 @@
       {
         "TileType": 2,
         "Stacks": [
-          0,
-          6
+          3,
+          3
         ]
       },
       {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
         "TileType": 0
       },
       {
@@ -56,35 +44,6 @@
       }
     ],
     [
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
       {
         "TileType": 0
       },
@@ -94,8 +53,8 @@
       {
         "TileType": 2,
         "Stacks": [
-          1,
-          0
+          6,
+          3
         ]
       },
       {
@@ -106,58 +65,6 @@
       }
     ],
     [
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      }
-    ],
-    [
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 0
-      },
-      {
-        "TileType": 1
-      }
-    ],
-    [
-      {
-        "TileType": 1
-      },
-      {
-        "TileType": 1
-      },
       {
         "TileType": 0
       },
