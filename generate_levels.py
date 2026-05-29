@@ -131,23 +131,17 @@ def _parse_colors(val):
     if pd.isna(val): return []
     return [c.strip() for c in str(val).split(',') if c.strip()]
 
-def _make_hex_board(target_cells, max_dim=5):
+def _make_hex_board(target_cells, max_dim=5, shape_seed=0):
     """
-    최대 칸 수 25개, 한 변 최대 5
-    5×5(25칸)는 금지 → 최대 5×4 또는 4×5
+    5×4 기본 그리드 + shape_seed로 Blank 위치를 다르게 → 판 모양 다양화
+    최소 10칸, Normal 60% 보장
     """
-    best_r = 1
-    for r in range(1, 8):
-        if 3*r*r+3*r+1 <= target_cells: best_r = r
-        else: break
-    r = best_r
-    dim = min(2*r+1, max_dim)
-    Y, X = dim, dim
+    import random as _rnd
+    sr = _rnd.Random(shape_seed)
 
-    # 5×5 방지: 둘 다 5면 한 쪽을 4로
-    if Y == 5 and X == 5:
-        Y = 4  # 5×4로 제한
-
+    # 기본 5×4 헥사 그리드 (r=2)
+    r = 2
+    Y, X = 4, 5
     cy, cx = Y//2, X//2
     playable = set()
     for y in range(Y):
@@ -157,19 +151,58 @@ def _make_hex_board(target_cells, max_dim=5):
             dcol = col - cc; drow = y - cy
             if max(abs(dcol), abs(drow), abs(dcol+drow)) <= r:
                 playable.add((y, x))
+
+    # shape_seed 기반으로 가장자리 칸 일부를 Blank로 제거 (모양 다양화)
+    # 가장자리: 이웃이 4개 이하인 칸
+    def count_neighbors(y, x, pl):
+        NEIGH_E = [(-1,0),(1,0),(0,-1),(0,1),(-1,-1),(-1,1)]
+        NEIGH_O = [(-1,0),(1,0),(0,-1),(0,1),(1,-1),(1,1)]
+        offs = NEIGH_E if y%2==0 else NEIGH_O
+        return sum(1 for dy,dx in offs if (y+dy,x+dx) in pl)
+
+    edge_cells = [p for p in playable if count_neighbors(p[0],p[1],playable) <= 3]
+    sr.shuffle(edge_cells)
+
+    # shape 타입: 0=원형(제거없음), 1=좌상 제거, 2=우하 제거, 3=좌하 제거
+    shape_type = shape_seed % 4
+    remove_count = [0, 2, 3, 2][shape_type]
+    remove_count = min(remove_count, len(playable)-10)  # 최소 10칸 보장
+
+    to_remove = set()
+    if shape_type == 1:  # 좌상 모서리
+        candidates = sorted(edge_cells, key=lambda p: p[0]+p[1])[:remove_count*2]
+        to_remove = set(sr.sample(candidates, min(remove_count, len(candidates))))
+    elif shape_type == 2:  # 우하 모서리
+        candidates = sorted(edge_cells, key=lambda p: -(p[0]+p[1]))[:remove_count*2]
+        to_remove = set(sr.sample(candidates, min(remove_count, len(candidates))))
+    elif shape_type == 3:  # 좌하 모서리
+        candidates = sorted(edge_cells, key=lambda p: -p[0]+p[1])[:remove_count*2]
+        to_remove = set(sr.sample(candidates, min(remove_count, len(candidates))))
+
+    playable = playable - to_remove
+
     tiles = [[{'TileType':1} for _ in range(X)] for _ in range(Y)]
     for (y,x) in playable: tiles[y][x] = {'TileType':0}
     return X, Y, tiles, playable
 
 def _build_board(lv, color_ints, board_target, rng, total_alloc):
     t = board_target/100.0
-    cells_lo = int(15+(1-t)*10)
-    cells_hi = int(18+(1-t)*7)
-    target_cells = rng.randint(max(15,cells_lo), min(25,cells_hi))
 
-    X,Y,tiles,playable = _make_hex_board(target_cells)
+    # 판 크기: lv 기반 패턴 + 노이즈로 다양성 확보
+    # 19칸(5×4), 22칸(5×4+노이즈), 25칸(5×4 max) 혼합
+    lv_var = [19,22,19,25,19,22,25,19,22,19,25,22,19,25,19,22,19,25,22,19]
+    base_cells = lv_var[(lv-1) % len(lv_var)]
+    target_cells = max(19, min(25, base_cells + rng.randint(-1, 1)))
+
+    X,Y,tiles,playable = _make_hex_board(target_cells, shape_seed=lv*7)
     pl=list(playable); rng.shuffle(pl)
-    n_stacks=rng.randint(max(2,int(2+t*5)),max(3,int(3+t*4)))
+
+    # Normal 60% 보장: 전체 playable의 최대 40%만 비Normal로 사용
+    max_non_normal = max(1, int(len(pl) * 0.40))
+
+    # 스택 수
+    n_stacks=rng.randint(max(2,int(2+t*3)),max(3,int(3+t*3)))
+    n_stacks=min(n_stacks, max_non_normal)
     n_stacks=min(n_stacks,len(pl))
     chip_lo=int(2+t*4); chip_hi=int(4+t*4)
 
@@ -180,8 +213,10 @@ def _build_board(lv, color_ints, board_target, rng, total_alloc):
     stack_pos=pl[:n_stacks]
     gimmick_types=[t for t in ['Lock','StackLock','Plank','Ice','Grass','Ads'] if t in avail]
     remaining=[p for p in pl if p not in stack_pos]
-    gim_ratio=0.05+(board_target/100)*0.20
-    n_gimmick=min(max(0,int(len(pl)*gim_ratio)),len(remaining))
+    # 기믹도 non_normal 예산 안에서 제한
+    remaining_budget = max_non_normal - n_stacks
+    gim_ratio=0.05+(board_target/100)*0.15
+    n_gimmick=min(max(0,int(len(pl)*gim_ratio)), remaining_budget, len(remaining))
     gimmick_pos=[(remaining[j],rng.choice(gimmick_types)) for j in range(n_gimmick)] if gimmick_types else []
 
     for (y,x) in stack_pos:
