@@ -653,20 +653,39 @@ if page == "🏠 홈":
     st.markdown('<div class="page-anim">', unsafe_allow_html=True)
 
     # ── 히어로 섹션
-    col_logo, col_title = st.columns([1, 3])
-    with col_logo:
-        logo_url = f"{GITHUB_RAW_BASE}/assets/images/Logo.png"
-        st.markdown(f'<img src="{logo_url}" style="width:100%;border-radius:16px;margin-top:8px;" onerror="this.style.display=\'none\'">', unsafe_allow_html=True)
-    with col_title:
-        st.markdown('<div class="hero-title">나의 작은 서점</div>', unsafe_allow_html=True)
-        st.markdown('<div class="hero-sub">My Little Bookstore — with Puzzle<br>헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템</div>', unsafe_allow_html=True)
+    bg_url    = f"{GITHUB_RAW_BASE}/assets/images/BG.png"
+    icon_url  = f"{GITHUB_RAW_BASE}/assets/images/Icon.png"
+    title_url = f"{GITHUB_RAW_BASE}/assets/images/Title.png"
+    logo_url  = f"{GITHUB_RAW_BASE}/assets/images/Logo.png"
 
-        # 핵심 지표
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("퍼즐 레벨", "500개")
-        m2.metric("시장 데이터", "Lv 1~100")
-        m3.metric("난이도 지표", "15개 (H1)")
-        m4.metric("출시 목표", "2025. 9")
+    st.markdown(f"""
+<div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:24px;box-shadow:0 8px 32px rgba(107,58,42,0.18);">
+  <img src="{bg_url}" style="width:100%;max-height:280px;object-fit:cover;display:block;"
+       onerror="this.style.background='#D4956A';this.style.minHeight='200px'">
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;
+              background:linear-gradient(135deg,rgba(107,58,42,0.65),rgba(139,90,58,0.40));
+              display:flex;align-items:center;padding:28px 36px;gap:24px;">
+    <img src="{icon_url}" style="height:90px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.3);"
+         onerror="this.style.display='none'">
+    <div style="flex:1;">
+      <img src="{title_url}" style="height:52px;margin-bottom:10px;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"
+           onerror="this.style.display='none'">
+      <img src="{logo_url}" style="height:28px;display:block;opacity:0.92;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.2));"
+           onerror="this.style.display='none'">
+      <p style="color:#FBF5EE;font-size:13px;margin-top:10px;opacity:0.9;">
+        헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템
+      </p>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # 핵심 지표
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("퍼즐 레벨", "500개")
+    m2.metric("시장 데이터", "Lv 1~100")
+    m3.metric("난이도 지표", "15개 (H1)")
+    m4.metric("출시 목표", "2026. 10")
 
     st.markdown('<hr style="border-color:#E8D5C0;margin:24px 0;">', unsafe_allow_html=True)
 
@@ -674,7 +693,7 @@ if page == "🏠 홈":
     st.markdown('<div class="section-header">🎮 게임 플레이 영상</div>', unsafe_allow_html=True)
     video_path = BASE / "assets" / "videos" / "Hexasort Puzzle.mp4"
     video_url  = f"{GITHUB_RAW_BASE}/assets/videos/{quote('Hexasort Puzzle.mp4')}"
-    col_vid, col_pad = st.columns([2, 1])
+    col_vid, col_pad = st.columns([1, 2])
     with col_vid:
         if video_path.exists():
             with open(video_path, "rb") as vf:
@@ -708,7 +727,7 @@ if page == "🏠 홈":
 """, unsafe_allow_html=True)
 
     # 2열로 18장 표시
-    imgs = [f"게임 설명 {str(i).zfill(2)}.png" for i in range(1, 19)]
+    imgs = [f"{str(i).zfill(2)}.png" for i in range(1, 19)]
     # 존재하는 파일만
     img_paths = [(BASE / "assets" / "images" / img) for img in imgs]
 
