@@ -575,7 +575,7 @@ if page == "🏠 홈":
         m1.metric("퍼즐 레벨", "500개")
         m2.metric("시장 데이터", "Lv 1~100")
         m3.metric("난이도 지표", "15개 (H1)")
-        m4.metric("출시 목표", "2025. 9")
+        m4.metric("출시 목표", "2026. 10")
 
     st.markdown('<hr style="border-color:#E8D5C0;margin:24px 0;">', unsafe_allow_html=True)
 
