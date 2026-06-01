@@ -676,7 +676,7 @@ if page == "🏠 홈":
     <img src="{icon_src}" style="height:88px;border-radius:18px;
          box-shadow:0 4px 16px rgba(0,0,0,0.35);flex-shrink:0;">
     <div style="flex:1;">
-      <img src="{logo_src}" style="height:52px;display:block;margin-bottom:10px;
+    <img src="{logo_src}" style="height:80px;display:block;margin-bottom:10px;
            filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));">
       <p style="color:#FBF5EE;font-size:13px;margin:10px 0 0 0;
                 text-shadow:0 1px 3px rgba(0,0,0,0.5);">
