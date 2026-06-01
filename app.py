@@ -1411,7 +1411,7 @@ elif page == "🎲 4. JSON 생성기":
     st.title("🎲 JSON 생성기")
     st.caption("난이도 곡선 기반으로 레벨 범위를 선택해 JSON 파일을 생성하고 다운로드합니다.")
 
-    from generate_levels import generate_range_zip, difficulty as calc_diff
+    from generate_levels import generate_range_zip, target_diff as calc_diff
 
     tbl = st.session_state.tbl_df
 
@@ -1478,8 +1478,8 @@ elif page == "🎲 4. JSON 생성기":
                 'hard':      ('어려움',   '🟠'),
                 'very_hard': ('매우어려움','🔴'),
             }
-            def on_progress(done, total):
-                lv_now  = start_lv + done - 1
+            def on_progress(done, total, lv_now=0, bs=0, ss=0, intg_v=0):
+                if lv_now == 0: lv_now = start_lv + done - 1
                 diff_now = calc_diff(lv_now)
                 g = ('very_easy' if diff_now < 25 else
                      'easy'      if diff_now < 45 else
@@ -1513,7 +1513,7 @@ elif page == "🎲 4. JSON 생성기":
 elif page == "🔧 5. 설정":
     st.title("🔧 설정")
 
-    set_tab1, set_tab2 = st.tabs(["⚖️ 가중치 세부 설정", "📋 스택 파라미터 수정"])
+    set_tab1, set_tab2, set_tab3 = st.tabs(["⚖️ H1 가중치 설정", "🎰 tblStage 가중치 설정", "📋 스택 파라미터 수정"])
 
     # ── 가중치 세부 설정
     with set_tab1:
@@ -1599,8 +1599,118 @@ elif page == "🔧 5. 설정":
                            json.dumps(w_config,ensure_ascii=False,indent=2).encode(),
                            "weight_config.json","application/json",use_container_width=True)
 
-    # ── 스택 파라미터 수정
+    # ── tblStage 가중치 설정
     with set_tab2:
+        st.caption("tblStage 파라미터별 게임 진행 난이도 기여 가중치를 설정합니다.")
+
+        STACK_INFO = [
+            ('alloc',   'TotalAllocation (할당량)',        False, 10, 300),
+            ('init_c',  '초기 색상 수',                    False,  1,   5),
+            ('dist_c',  '스택당 색상 수',                  False,  1,   4),
+            ('dup_r',   '색 중복 확률 (역수 — 낮을수록↑)', True,  0.1, 0.8),
+            ('prog1',   '첫 추가 임계값 (역수 — 낮을수록↑)',True,  2,  30),
+            ('new_c',   '추가 색상 수',                    False,  0,   5),
+            ('gimmick', '기믹 비율',                       False,  0, 0.5),
+        ]
+
+        if 'stack_weights' not in st.session_state:
+            st.session_state.stack_weights = {
+                'alloc':20,'init_c':12,'dist_c':10,
+                'dup_r':8,'prog1':10,'new_c':8,'gimmick':14
+            }
+
+        tw_s = sum(st.session_state.stack_weights.values())
+        st.markdown(f"**현재 총합**: {tw_s}pt")
+
+        sc1, sc2 = st.columns(2)
+        for i, (key, label, inv, mn, mx) in enumerate(STACK_INFO):
+            col = sc1 if i%2==0 else sc2
+            pct = round(st.session_state.stack_weights[key]/tw_s*100,1) if tw_s>0 else 0
+            new_w = col.slider(
+                f"{label} {'↘역수' if inv else '↗'}",
+                0, 30, st.session_state.stack_weights[key], key=f"sw_{key}"
+            )
+            st.session_state.stack_weights[key] = new_w
+            col.caption(f"비율: **{pct}%**")
+
+        # 파이 차트
+        sw_vals = list(st.session_state.stack_weights.values())
+        sw_keys = ['TotalAlloc','초기색상','스택당색','중복확률','첫임계값','추가색상','기믹비율']
+        fig_spie = go.Figure(go.Pie(
+            labels=sw_keys, values=sw_vals,
+            hole=0.4, textinfo='label+percent',
+            textfont=dict(size=10)
+        ))
+        fig_spie.update_layout(
+            height=320, paper_bgcolor=T["plot_bg"],
+            font_color=T["text"], margin=dict(l=10,r=10,t=10,b=10),
+            showlegend=False
+        )
+        st.plotly_chart(fig_spie, use_container_width=True)
+
+        # 가중치 적용 시 gameplay_score 미리보기
+        intg = st.session_state.intg_df
+        tbl_s = st.session_state.tbl_df
+        if intg is not None and tbl_s is not None:
+            st.markdown("**가중치 적용 시 gameplay_score 미리보기**")
+
+            def parse_avg(v):
+                try: return float(str(v).split(',')[0])
+                except: return 0.0
+            def parse_cnt(v):
+                if pd.isna(v): return 0
+                return len([c for c in str(v).split(',') if c.strip()])
+            def _norm(v,lo,hi,inv=False):
+                if hi==lo: return 0.0
+                n=max(0.0,min(1.0,(v-lo)/(hi-lo)))
+                return 1-n if inv else n
+
+            sw = st.session_state.stack_weights
+            tw_sw = sum(sw.values()) or 1
+            df_n_s = tbl_s[tbl_s['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
+            gs_scores = []
+            for _, row in df_n_s.iterrows():
+                alloc = float(row['TotalAllocation']) if not pd.isna(row['TotalAllocation']) else 0
+                init_c = parse_cnt(row['InitialAvailableColors'])
+                dist_c = parse_avg(row['DistinctColorCount'])
+                dup_r  = parse_avg(row['ColorDuplicationRate'])
+                prog1  = parse_avg(row['ProgressAddNewColor'])
+                new_c  = parse_cnt(row['NewColorsMilestones'])
+                gim_sum= sum(float(row.get(c,0) or 0) for c in ['GrassCount','WoodCount','IceCount','TurnCount','CameraPictureCount'])
+                gim_r  = gim_sum / max(alloc, 1)
+                s = (_norm(alloc,10,300)*sw['alloc'] +
+                     _norm(init_c,1,5)*sw['init_c'] +
+                     _norm(dist_c,1,4)*sw['dist_c'] +
+                     _norm(dup_r,0.1,0.8,True)*sw['dup_r'] +
+                     _norm(prog1,2,30,True)*sw['prog1'] +
+                     _norm(new_c,0,5)*sw['new_c'] +
+                     _norm(gim_r,0,0.5)*sw['gimmick'])
+                gs_scores.append(round(s/tw_sw*100,1))
+
+            gs_sm = pd.Series(gs_scores).rolling(5,center=True,min_periods=1).mean()
+            fig_gs = go.Figure()
+            fig_gs.add_trace(go.Scatter(
+                x=list(range(1,len(gs_scores)+1)), y=gs_sm.tolist(),
+                name='gameplay_score (이동평균)',
+                line=dict(color='#1890ff', width=2)
+            ))
+            fig_gs.add_trace(go.Scatter(
+                x=np.arange(1,501), y=target_curve(np.arange(1,501)),
+                name='게임 진행 목표',
+                line=dict(color='#f5222d', width=1.5, dash='dot'), opacity=0.7
+            ))
+            fig_gs.update_layout(
+                height=280, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
+                font_color=T["text"], xaxis_title='레벨',
+                xaxis=dict(gridcolor=T["grid_line"]),
+                yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
+                legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)'),
+                margin=dict(l=10,r=10,t=30,b=10)
+            )
+            st.plotly_chart(fig_gs, use_container_width=True)
+
+    # ── 스택 파라미터 수정
+    with set_tab3:
         tbl = st.session_state.tbl_df
         if tbl is None:
             st.warning("사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
