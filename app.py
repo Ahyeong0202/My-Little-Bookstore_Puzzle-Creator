@@ -1407,8 +1407,7 @@ elif page == "🎲 4. JSON 생성기":
                 'hard':      ('어려움',   '🟠'),
                 'very_hard': ('매우어려움','🔴'),
             }
-            def on_progress(done, total):
-                lv_now  = start_lv + done - 1
+            def on_progress(done, total, lv_now=0, bs=0, ss=0, intg=0):
                 diff_now = calc_diff(lv_now)
                 g = ('very_easy' if diff_now < 25 else
                      'easy'      if diff_now < 45 else
