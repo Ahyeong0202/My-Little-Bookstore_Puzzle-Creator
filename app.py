@@ -38,6 +38,9 @@ TILE_REV   = {v:k for k,v in TILETYPE.items()}
 GITHUB_REPO  = "Ahyeong0202/My-Little-Bookstore_Puzzle-Creator"
 ARCHIVE_PATH = "data/archives"
 MARKET_CSV   = BASE / "data" / "market" / "market_lv1_100.csv"
+ASSETS_IMG   = BASE / "assets" / "images"
+ASSETS_VID   = BASE / "assets" / "videos"
+GITHUB_RAW   = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
 
 # ══════════════════════════════════════════════════════
 # CSS
@@ -60,144 +63,206 @@ for key, default in {
     "github_token": "",
     "archives":     [],
     "lang":         "한국어",
-    "dark_mode":    True,   # 다크모드 기본값
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
 
-# ── 테마 변수 (다크/라이트)
-DK = st.session_state.dark_mode
+# ── 브라운 라이트 테마 고정
 T = {
-    "bg":        "#0d1117" if DK else "#ffffff",
-    "bg2":       "#161b22" if DK else "#f6f8fa",
-    "bg3":       "#21262d" if DK else "#eaeef2",
-    "border":    "#30363d" if DK else "#8c959f",
-    "text":      "#e6edf3" if DK else "#1f2328",
-    "text2":     "#7d8590" if DK else "#656d76",
-    "accent":    "#58a6ff" if DK else "#0969da",
-    "grid_bg":   "#1a1a2e" if DK else "#f0f4ff",
-    "plot_bg":   "#0d1117" if DK else "#ffffff",
-    "grid_line": "#21262d" if DK else "#e8ecf0",
+    "bg":        "#FBF5EE",
+    "bg2":       "#F0E6D8",
+    "bg3":       "#E8D5C0",
+    "border":    "#C4956A",
+    "text":      "#2C1810",
+    "text2":     "#7A5C45",
+    "accent":    "#6B3A2A",
+    "grid_bg":   "#F0E6D8",
+    "plot_bg":   "#FBF5EE",
+    "grid_line": "#E8D5C0",
+    "brown":     "#6B3A2A",
+    "brown_mid": "#8B5A3A",
+    "brown_lt":  "#D4956A",
+    "cream":     "#FBF5EE",
+    "white":     "#FFFFFF",
 }
 
-# ── 동적 CSS 주입
-st.markdown(f"""
+# ── 브라운 라이트 CSS
+st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
 /* ── 전체 배경 */
-.stApp {{ background-color: {T["bg"]}; color: {T["text"]}; }}
-[data-testid="stAppViewContainer"] {{ background-color: {T["bg"]}; }}
-[data-testid="stHeader"] {{ background-color: {T["bg"]}; }}
+.stApp { background-color: #FBF5EE !important; color: #2C1810 !important; font-family: 'Noto Sans KR', sans-serif; }
+[data-testid="stAppViewContainer"] { background-color: #FBF5EE !important; }
+[data-testid="stHeader"] { background-color: #FBF5EE !important; border-bottom: 1px solid #E8D5C0; }
+[data-testid="stMainBlockContainer"] { background-color: #FBF5EE !important; }
 
 /* ── 사이드바 */
-[data-testid="stSidebar"] {{ background: {T["bg2"]}; border-right: 1px solid {T["border"]}; }}
-[data-testid="stSidebar"] * {{ color: {T["text"]}; }}
+[data-testid="stSidebar"] { background: #F0E6D8 !important; border-right: 2px solid #C4956A; }
+[data-testid="stSidebar"] * { color: #2C1810 !important; }
+[data-testid="stSidebar"] .stRadio label { color: #2C1810 !important; font-weight: 500; }
+
+/* ── 라디오 선택 */
+[data-testid="stSidebar"] .stRadio [data-testid="stWidgetLabel"] { color: #2C1810 !important; }
 
 /* ── 입력 위젯 */
 [data-testid="stTextInput"] input,
 [data-testid="stNumberInput"] input,
 [data-testid="stSelectbox"] div,
-[data-testid="stTextArea"] textarea {{
-    background-color: {T["bg3"]} !important;
-    color: {T["text"]} !important;
-    border-color: {T["border"]} !important;
-}}
+[data-testid="stTextArea"] textarea {
+    background-color: #FFFFFF !important;
+    color: #2C1810 !important;
+    border-color: #C4956A !important;
+    border-radius: 6px !important;
+}
 
-/* ── 카드/섹션 */
-.metric-card {{
-    background: {T["bg2"]}; border: 1px solid {T["border"]};
-    border-radius: 8px; padding: 16px; text-align: center;
-}}
-.metric-val {{ font-size: 28px; font-weight: 700; color: {T["accent"]}; }}
-.metric-lbl {{ font-size: 12px; color: {T["text2"]}; margin-top: 4px; }}
+/* ── 카드 */
+.metric-card {
+    background: #FFFFFF; border: 1px solid #E8D5C0;
+    border-radius: 10px; padding: 16px; text-align: center;
+    box-shadow: 0 2px 8px rgba(107,58,42,0.08);
+}
+.metric-val { font-size: 28px; font-weight: 700; color: #6B3A2A; }
+.metric-lbl { font-size: 12px; color: #7A5C45; margin-top: 4px; }
 
 /* ── 뱃지 */
-.file-badge {{
-    display: inline-block; background: #238636;
+.file-badge {
+    display: inline-block; background: #6B3A2A;
     color: white; border-radius: 4px;
     font-size: 11px; padding: 2px 7px; margin: 2px 0;
-}}
-.file-badge-warn {{
-    display: inline-block; background: #9e6a03;
+}
+.file-badge-warn {
+    display: inline-block; background: #D4956A;
     color: white; border-radius: 4px;
     font-size: 11px; padding: 2px 7px; margin: 2px 0;
-}}
+}
 
 /* ── 사이드바 라벨 */
-.sidebar-label {{
-    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-    color: {T["text2"]}; text-transform: uppercase; margin-bottom: 8px;
-}}
+.sidebar-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    color: #7A5C45; text-transform: uppercase; margin-bottom: 8px;
+}
 
-/* ── 탭 버튼 */
-div[data-testid="stTabs"] button {{ font-size: 14px; }}
+/* ── 탭 */
+div[data-testid="stTabs"] button {
+    font-size: 14px; color: #7A5C45 !important;
+    border-radius: 6px 6px 0 0;
+}
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #6B3A2A !important; font-weight: 700;
+    border-bottom: 2px solid #6B3A2A !important;
+}
 
 /* ── 데이터프레임 */
-[data-testid="stDataFrame"] {{ background: {T["bg2"]}; }}
+[data-testid="stDataFrame"] { background: #FFFFFF; border: 1px solid #E8D5C0; border-radius: 8px; }
 
 /* ── expander */
-[data-testid="stExpander"] {{
-    background: {T["bg2"]}; border: 1px solid {T["border"]} !important;
-    border-radius: 6px;
-}}
+[data-testid="stExpander"] {
+    background: #FFFFFF; border: 1px solid #E8D5C0 !important;
+    border-radius: 8px;
+}
+[data-testid="stExpander"] summary { color: #2C1810 !important; }
 
 /* ── 구분선 */
-hr {{ border-color: {T["border"]}; }}
+hr { border-color: #E8D5C0; }
 
-/* ── 파일 업로더 전체 */
-[data-testid="stFileUploader"] {{
-    background: {T["bg3"]};
-    border-radius: 8px;
-}}
-[data-testid="stFileUploader"] * {{
-    color: {T["text"]} !important;
-}}
-[data-testid="stFileUploader"] label {{
-    color: {T["text"]} !important;
-    font-weight: 600;
-}}
-[data-testid="stFileUploader"] small,
-[data-testid="stFileUploader"] p,
-[data-testid="stFileUploader"] span {{
-    color: {T["text2"]} !important;
-}}
-[data-testid="stFileUploaderDropzone"] {{
-    background: {T["bg2"]} !important;
-    border: 1.5px dashed {T["border"]} !important;
+/* ── 파일 업로더 */
+[data-testid="stFileUploader"] { background: #FFFFFF; border-radius: 8px; border: 1px solid #E8D5C0; }
+[data-testid="stFileUploader"] * { color: #2C1810 !important; }
+[data-testid="stFileUploaderDropzone"] {
+    background: #F0E6D8 !important;
+    border: 1.5px dashed #C4956A !important;
     border-radius: 6px;
-}}
-[data-testid="stFileUploaderDropzone"] * {{
-    color: {T["text"]} !important;
-}}
+}
 
-/* ── 라디오 / 체크박스 / 토글 라벨 */
+/* ── 라디오/체크박스 */
 [data-testid="stRadio"] label,
 [data-testid="stCheckbox"] label,
-[data-testid="stToggle"] label,
-.stRadio label, .stCheckbox label {{
-    color: {T["text"]} !important;
-}}
+[data-testid="stToggle"] label {
+    color: #2C1810 !important;
+}
 
-/* ── selectbox 드롭다운 */
+/* ── 슬라이더 */
+[data-testid="stSlider"] label { color: #2C1810 !important; }
+[data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSlider"] [data-testid="stTickBarMax"] { color: #7A5C45 !important; }
+
+/* ── 버튼 */
+.stButton > button {
+    background-color: #6B3A2A !important; color: #FFFFFF !important;
+    border: none; border-radius: 8px; font-weight: 600;
+    transition: background 0.2s;
+}
+.stButton > button:hover { background-color: #8B5A3A !important; }
+
+/* ── 캡션 */
+[data-testid="stCaptionContainer"] p, .stCaption { color: #7A5C45 !important; }
+
+/* ── 마크다운 */
+.stMarkdown p, .stMarkdown li { color: #2C1810; }
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 { color: #6B3A2A; }
+.stMarkdown code { background: #F0E6D8; color: #6B3A2A; border-radius: 4px; padding: 2px 6px; }
+.stMarkdown pre { background: #F0E6D8 !important; border: 1px solid #E8D5C0; }
+
+/* ── selectbox 라벨 */
 [data-testid="stSelectbox"] label,
-[data-testid="stSelectbox"] span,
 [data-testid="stNumberInput"] label,
 [data-testid="stTextInput"] label,
-[data-testid="stTextArea"] label,
-[data-testid="stSlider"] label {{
-    color: {T["text"]} !important;
-}}
+[data-testid="stTextArea"] label { color: #2C1810 !important; }
 
-/* ── 캡션 / 헬프 텍스트 */
-[data-testid="stCaptionContainer"] p,
-.stCaption {{
-    color: {T["text2"]} !important;
-}}
+/* ── progress bar */
+[data-testid="stProgressBar"] > div { background-color: #6B3A2A !important; }
 
-/* ── 마크다운 텍스트 */
-.stMarkdown p, .stMarkdown li, .stMarkdown h1,
-.stMarkdown h2, .stMarkdown h3 {{
-    color: {T["text"]};
-}}
+/* ── metric */
+[data-testid="stMetric"] { background: #FFFFFF; border-radius: 8px; padding: 12px; border: 1px solid #E8D5C0; }
+[data-testid="stMetricValue"] { color: #6B3A2A !important; }
+[data-testid="stMetricLabel"] { color: #7A5C45 !important; }
+
+/* ── 페이지 전환 애니메이션 */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+.page-anim { animation: fadeInUp 0.5s ease forwards; }
+.fade-in   { animation: fadeIn 0.6s ease forwards; }
+.slide-in  { animation: slideInLeft 0.5s ease forwards; }
+
+/* ── 이미지 카드 */
+.img-card {
+    background: #FFFFFF; border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(107,58,42,0.10);
+    padding: 8px; margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* ── 홈 히어로 */
+.hero-title {
+    font-size: 2.4em; font-weight: 800; color: #6B3A2A;
+    text-align: center; margin-bottom: 0.2em;
+}
+.hero-sub {
+    font-size: 1.1em; color: #7A5C45;
+    text-align: center; margin-bottom: 1.5em;
+}
+
+/* ── 섹션 헤더 */
+.section-header {
+    font-size: 1.4em; font-weight: 700; color: #6B3A2A;
+    border-left: 4px solid #D4956A; padding-left: 12px;
+    margin: 24px 0 16px 0;
+}
+
+/* ── warning/info */
+[data-testid="stAlert"] { border-radius: 8px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -314,12 +379,18 @@ def load_level_local(lv):
 # 사이드바
 # ══════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown("## 🧩 Puzzle Creator")
+    st.markdown("""
+<div style="text-align:center;padding:8px 0 4px 0;">
+  <span style="font-size:1.6em;font-weight:800;color:#6B3A2A;">🧩 Puzzle Creator</span><br>
+  <span style="font-size:0.75em;color:#7A5C45;">My Little Bookstore</span>
+</div>
+""", unsafe_allow_html=True)
     st.markdown("---")
 
     # ── 페이지 선택
     st.markdown('<div class="sidebar-label">페이지</div>', unsafe_allow_html=True)
     page = st.radio("", [
+        "🏠 홈",
         "📖 1. 매뉴얼",
         "📊 2. 난이도 분석",
         "🗺️ 3. 판 모양 뷰어",
@@ -419,6 +490,94 @@ with st.sidebar:
     # ── 언어 (후순위)
     st.markdown('<div class="sidebar-label">🌐 언어 (준비 중)</div>', unsafe_allow_html=True)
     st.toggle("한국어 / English", value=True, disabled=True)
+
+# ══════════════════════════════════════════════════════
+# 탭 0 — 홈
+# ══════════════════════════════════════════════════════
+if page == "🏠 홈":
+    GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
+
+    # ── 페이지 애니메이션 wrapper
+    st.markdown('<div class="page-anim">', unsafe_allow_html=True)
+
+    # ── 히어로 섹션
+    col_logo, col_title = st.columns([1, 3])
+    with col_logo:
+        logo_url = f"{GITHUB_RAW_BASE}/assets/images/Logo.png"
+        st.markdown(f'<img src="{logo_url}" style="width:100%;border-radius:16px;margin-top:8px;" onerror="this.style.display=\'none\'">', unsafe_allow_html=True)
+    with col_title:
+        st.markdown('<div class="hero-title">나의 작은 서점</div>', unsafe_allow_html=True)
+        st.markdown('<div class="hero-sub">My Little Bookstore — with Puzzle<br>헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템</div>', unsafe_allow_html=True)
+
+        # 핵심 지표
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("퍼즐 레벨", "500개")
+        m2.metric("시장 데이터", "Lv 1~100")
+        m3.metric("난이도 지표", "15개 (H1)")
+        m4.metric("출시 목표", "2025. 9")
+
+    st.markdown('<hr style="border-color:#E8D5C0;margin:24px 0;">', unsafe_allow_html=True)
+
+    # ── 게임 플레이 영상
+    st.markdown('<div class="section-header">🎮 게임 플레이 영상</div>', unsafe_allow_html=True)
+    video_path = BASE / "assets" / "videos" / "Hexasort Puzzle.mp4"
+    video_url  = f"{GITHUB_RAW_BASE}/assets/videos/Hexasort Puzzle.mp4"
+    if video_path.exists():
+        with open(video_path, "rb") as vf:
+            st.video(vf.read())
+    else:
+        st.video(video_url)
+
+    st.markdown('<hr style="border-color:#E8D5C0;margin:24px 0;">', unsafe_allow_html=True)
+
+    # ── 게임 소개 슬라이드 (18장 애니메이션)
+    st.markdown('<div class="section-header">📖 게임 소개</div>', unsafe_allow_html=True)
+    st.markdown("""
+<style>
+@keyframes cardIn {
+    from { opacity:0; transform:translateY(32px) scale(0.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.intro-card {
+    background:#FFFFFF; border-radius:14px;
+    box-shadow:0 4px 20px rgba(107,58,42,0.12);
+    overflow:hidden; margin-bottom:20px;
+    opacity:0;
+    animation:cardIn 0.5s ease forwards;
+}
+.intro-card img { width:100%; display:block; }
+.intro-num {
+    font-size:12px; color:#7A5C45; font-weight:600;
+    padding:6px 12px; background:#F0E6D8; text-align:right;
+}
+</style>
+""", unsafe_allow_html=True)
+
+    # 2열로 18장 표시
+    imgs = [f"게임 설명 {str(i).zfill(2)}.png" for i in range(1, 19)]
+    # 존재하는 파일만
+    img_paths = [(BASE / "assets" / "images" / img) for img in imgs]
+
+    for row_i in range(0, 18, 2):
+        cols = st.columns(2)
+        for col_j, c in enumerate(cols):
+            idx = row_i + col_j
+            if idx >= 18: break
+            img_name = imgs[idx]
+            img_path = img_paths[idx]
+            delay = f"{0.1 + idx*0.07:.2f}s"
+            img_url = f"{GITHUB_RAW_BASE}/assets/images/{img_name}"
+            with c:
+                st.markdown(
+                    f"""<div class="intro-card" style="animation-delay:{delay};">
+                    <div class="intro-num">{idx+1} / 18</div>
+                    <img src="{img_url}" alt="게임 소개 {idx+1}"
+                         onerror="this.parentElement.style.display='none'">
+                    </div>""",
+                    unsafe_allow_html=True
+                )
+
+    st.markdown('</div>', unsafe_allow_html=True)  # page-anim 닫기
 
 # ══════════════════════════════════════════════════════
 # 탭 1 — 매뉴얼
@@ -603,6 +762,7 @@ target(N) = (70 - 52 x e^(-N/90)) + 3.71 + local_var[(N-1) mod 100]
 # 탭 2 — 난이도 분석
 # ══════════════════════════════════════════════════════
 elif page == "📊 2. 난이도 분석":
+    st.markdown('<div class="page-anim">', unsafe_allow_html=True)
     st.title("📊 난이도 분석")
     st.caption("시장 데이터 기준선 vs 우리 게임 통합 난이도 비교 + 가중치 조정")
 
@@ -930,6 +1090,7 @@ elif page == "📊 2. 난이도 분석":
 
 # ══════════════════════════════════════════════════════
 elif page == "🗺️ 3. 판 모양 뷰어":
+    st.markdown('<div class="page-anim">', unsafe_allow_html=True)
     st.title("🗺️ 판 모양 뷰어 / JSON 생성기")
 
     view_tab, edit_tab = st.tabs(["🔍 레벨 뷰어 & 편집", "✏️ 새 판 만들기"])
@@ -1408,6 +1569,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
 # 탭 4 — JSON 생성기
 # ══════════════════════════════════════════════════════
 elif page == "🎲 4. JSON 생성기":
+    st.markdown('<div class="page-anim">', unsafe_allow_html=True)
     st.title("🎲 JSON 생성기")
     st.caption("난이도 곡선 기반으로 레벨 범위를 선택해 JSON 파일을 생성하고 다운로드합니다.")
 
@@ -1511,6 +1673,7 @@ elif page == "🎲 4. JSON 생성기":
 
 # ══════════════════════════════════════════════════════
 elif page == "🔧 5. 설정":
+    st.markdown('<div class="page-anim">', unsafe_allow_html=True)
     st.title("🔧 설정")
 
     set_tab1, set_tab2, set_tab3 = st.tabs(["⚖️ H1 가중치 설정", "🎰 tblStage 가중치 설정", "📋 스택 파라미터 수정"])
@@ -1739,6 +1902,7 @@ elif page == "🔧 5. 설정":
 # 탭 5 — 아카이브
 # ══════════════════════════════════════════════════════
 elif page == "🗄️ 6. 아카이브":
+    st.markdown('<div class="page-anim">', unsafe_allow_html=True)
     st.title("🗄️ 아카이브")
     st.caption("설정값을 버전으로 저장하고 GitHub에 자동 커밋합니다.")
 
