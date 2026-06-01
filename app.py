@@ -190,10 +190,81 @@ hr { border-color: #E8D5C0; }
 /* ── 버튼 */
 .stButton > button {
     background-color: #6B3A2A !important; color: #FFFFFF !important;
-    border: none; border-radius: 8px; font-weight: 600;
+    border: none !important; border-radius: 8px !important; font-weight: 600;
     transition: background 0.2s;
 }
 .stButton > button:hover { background-color: #8B5A3A !important; }
+.stButton > button * { color: #FFFFFF !important; }
+
+/* ── 다운로드 버튼 */
+[data-testid="stDownloadButton"] button {
+    background-color: #6B3A2A !important; color: #FFFFFF !important;
+    border: none !important; border-radius: 8px !important; font-weight: 600;
+}
+[data-testid="stDownloadButton"] button:hover { background-color: #8B5A3A !important; }
+[data-testid="stDownloadButton"] button * { color: #FFFFFF !important; }
+
+/* ── primary 버튼 */
+[data-testid="stBaseButton-primary"] {
+    background-color: #6B3A2A !important; color: #FFFFFF !important;
+}
+
+/* ── 라디오 버튼 선택된 항목 */
+[data-testid="stSidebar"] .stRadio input:checked + label { color: #6B3A2A !important; font-weight: 700; }
+
+/* ── 토글 */
+[data-testid="stToggle"] { accent-color: #6B3A2A; }
+
+/* ── 체크박스 */
+[data-testid="stCheckbox"] input { accent-color: #6B3A2A; }
+
+/* ── 슬라이더 thumb */
+[data-testid="stSlider"] [role="slider"] { background-color: #6B3A2A !important; }
+
+/* ── selectbox 선택 영역 */
+[data-testid="stSelectbox"] > div > div {
+    background-color: #FFFFFF !important; color: #2C1810 !important;
+    border: 1px solid #C4956A !important;
+}
+
+/* ── multiselect 태그 */
+[data-testid="stMultiSelect"] span[data-baseweb="tag"] {
+    background-color: #6B3A2A !important; color: #FFFFFF !important;
+}
+[data-testid="stMultiSelect"] span[data-baseweb="tag"] span { color: #FFFFFF !important; }
+
+/* ── number input 버튼 */
+[data-testid="stNumberInput"] button {
+    background-color: #F0E6D8 !important; color: #2C1810 !important;
+    border-color: #C4956A !important;
+}
+
+/* ── file uploader 버튼 */
+[data-testid="stFileUploaderDropzone"] button {
+    background-color: #6B3A2A !important; color: #FFFFFF !important;
+    border: none !important;
+}
+
+/* ── progress */
+[data-testid="stProgressBar"] div { background-color: #6B3A2A !important; }
+
+/* ── st.status */
+[data-testid="stStatusWidget"] { background: #FFFFFF; border: 1px solid #E8D5C0; border-radius: 8px; }
+
+/* ── 선택된 라디오 원 */
+.stRadio [data-baseweb="radio"] div { border-color: #6B3A2A !important; }
+.stRadio [data-baseweb="radio"] [data-checked="true"] div { background-color: #6B3A2A !important; }
+
+/* ── 탭 선택 언더라인 */
+[data-baseweb="tab-highlight"] { background-color: #6B3A2A !important; }
+
+/* ── 코드 블록 */
+[data-testid="stCode"] { background: #F0E6D8 !important; color: #2C1810 !important; }
+[data-testid="stCode"] * { color: #2C1810 !important; }
+
+/* ── alert/warning/info 텍스트 */
+[data-testid="stAlert"] { background: #FBF5EE !important; border-radius: 8px; }
+[data-testid="stAlert"] p, [data-testid="stAlert"] * { color: #2C1810 !important; }
 
 /* ── 캡션 */
 [data-testid="stCaptionContainer"] p, .stCaption { color: #7A5C45 !important; }
@@ -474,17 +545,7 @@ with st.sidebar:
             st.session_state.github_token = token_input
         st.caption(f"Repo: {GITHUB_REPO}")
 
-    st.markdown("---")
-    # ── 테마 토글
-    st.markdown('<div class="sidebar-label">🎨 테마</div>', unsafe_allow_html=True)
-    dark_toggle = st.toggle(
-        "🌙 다크모드" if DK else "☀️ 라이트모드",
-        value=st.session_state.dark_mode,
-        key="theme_toggle"
-    )
-    if dark_toggle != st.session_state.dark_mode:
-        st.session_state.dark_mode = dark_toggle
-        st.rerun()
+
 
     st.markdown("---")
     # ── 언어 (후순위)
