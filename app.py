@@ -566,15 +566,27 @@ with st.sidebar:
 
     # ── 페이지 선택
     st.markdown('<div class="sidebar-label">페이지</div>', unsafe_allow_html=True)
-    page = st.radio("", [
-        "🏠 홈",
-        "📖 1. 매뉴얼",
-        "📊 2. 난이도 분석",
-        "🗺️ 3. 판 모양 뷰어",
-        "🎲 4. JSON 생성기",
-        "🔧 5. 설정",
-        "🗄️ 6. 아카이브",
-    ], label_visibility="collapsed")
+    if IS_EN:
+        page_options = ["🏠 Home","📖 1. Manual","📊 2. Difficulty Analysis",
+                        "🗺️ 3. Board Viewer","🎲 4. JSON Generator",
+                        "🔧 5. Settings","🗄️ 6. Archive"]
+    else:
+        page_options = ["🏠 홈","📖 1. 매뉴얼","📊 2. 난이도 분석",
+                        "🗺️ 3. 판 모양 뷰어","🎲 4. JSON 생성기",
+                        "🔧 5. 설정","🗄️ 6. 아카이브"]
+    # 언어 바뀌어도 같은 탭 유지
+    PAGE_MAP_KR = ["🏠 홈","📖 1. 매뉴얼","📊 2. 난이도 분석",
+                   "🗺️ 3. 판 모양 뷰어","🎲 4. JSON 생성기","🔧 5. 설정","🗄️ 6. 아카이브"]
+    PAGE_MAP_EN = ["🏠 Home","📖 1. Manual","📊 2. Difficulty Analysis",
+                   "🗺️ 3. Board Viewer","🎲 4. JSON Generator","🔧 5. Settings","🗄️ 6. Archive"]
+    cur_page_key = st.session_state.get("cur_page_idx", 0)
+    page_idx = st.radio("", range(len(page_options)),
+                        format_func=lambda i: page_options[i],
+                        index=cur_page_key,
+                        label_visibility="collapsed")
+    st.session_state["cur_page_idx"] = page_idx
+    page_kr = PAGE_MAP_KR[page_idx]
+    page = page_kr  # 내부 조건문은 한국어 기준 유지
 
     st.markdown("---")
 
@@ -606,7 +618,7 @@ with st.sidebar:
         else:
             st.markdown('<span class="file-badge-warn">⚠ tblStage 없음</span>', unsafe_allow_html=True)
 
-    up_market = st.file_uploader("시장 데이터 CSV (새로 업로드)", type=["csv"], key="up_market")
+    up_market = st.file_uploader("Market Data CSV (Upload New)" if IS_EN else "시장 데이터 CSV (새로 업로드)", type=["csv"], key="up_market")
     if up_market:
         raw = pd.read_csv(up_market, header=0, skiprows=[1,2])
         raw.columns = raw.columns.str.strip()
@@ -639,7 +651,7 @@ with st.sidebar:
         st.download_button("JSON — 통합 난이도", df_to_json_bytes(intg),
                            "integrated_difficulty.json", "application/json", use_container_width=True)
     else:
-        st.caption("파일 업로드 후 다운로드 가능")
+        st.caption("Available after file upload" if IS_EN else "파일 업로드 후 다운로드 가능")
 
     st.markdown("---")
 
@@ -656,7 +668,16 @@ with st.sidebar:
     st.markdown("---")
     # ── 언어 (후순위)
     st.markdown('<div class="sidebar-label">🌐 언어 (준비 중)</div>', unsafe_allow_html=True)
-    st.toggle("한국어 / English", value=True, disabled=True)
+    lang_sel = st.radio(
+        "🌐 Language",
+        ["한국어", "English"],
+        index=0 if st.session_state.get("lang","한국어")=="한국어" else 1,
+        horizontal=True,
+        key="lang_radio"
+    )
+    if lang_sel != st.session_state.get("lang","한국어"):
+        st.session_state["lang"] = lang_sel
+        st.rerun()
 
 # ══════════════════════════════════════════════════════
 # 탭 0 — 홈
@@ -696,9 +717,11 @@ if page == "🏠 홈":
     <div style="flex:1;">
       <img src="{logo_src}" style="height:52px;display:block;margin-bottom:10px;
            filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));">
+      <img src="{title_src}" style="height:30px;display:block;
+           filter:drop-shadow(0 1px 4px rgba(0,0,0,0.3));opacity:0.95;">
       <p style="color:#FBF5EE;font-size:13px;margin:10px 0 0 0;
                 text-shadow:0 1px 3px rgba(0,0,0,0.5);">
-        헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템
+        {"Hexasort Puzzle Level Difficulty Design System" if IS_EN else "헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템"}
       </p>
     </div>
   </div>
@@ -707,15 +730,15 @@ if page == "🏠 홈":
 
     # 핵심 지표
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("퍼즐 레벨", "500개")
-    m2.metric("시장 데이터", "Lv 1~100")
-    m3.metric("난이도 지표", "15개 (H1)")
-    m4.metric("출시 목표", "2026. 10")
+    m1.metric("Puzzle Levels" if IS_EN else "퍼즐 레벨", "500")
+    m2.metric("Market Data" if IS_EN else "시장 데이터", "Lv 1~100")
+    m3.metric("Difficulty Metrics" if IS_EN else "난이도 지표", "15 (H1)")
+    m4.metric("Launch Target" if IS_EN else "출시 목표", "2026. 10")
     st.markdown('<hr style="border-color:#E8D5C0;margin:24px 0;">', unsafe_allow_html=True)
 
 
     # ── 게임 플레이 영상
-    st.markdown('<div class="section-header">🎮 게임 플레이 영상</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-header">{"🎮 Gameplay Video" if IS_EN else "🎮 게임 플레이 영상"}</div>', unsafe_allow_html=True)
     video_path = BASE / "assets" / "videos" / "Hexasort Puzzle.mp4"
     video_url  = f"{GITHUB_RAW_BASE}/assets/videos/{quote('Hexasort Puzzle.mp4')}"
     col_vid, col_pad = st.columns([1, 2])
@@ -729,7 +752,7 @@ if page == "🏠 홈":
     st.markdown('<hr style="border-color:#E8D5C0;margin:24px 0;">', unsafe_allow_html=True)
 
     # ── 게임 소개 슬라이드 (18장 애니메이션)
-    st.markdown('<div class="section-header">📖 게임 소개</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-header">{"📖 Game Introduction" if IS_EN else "📖 게임 소개"}</div>', unsafe_allow_html=True)
     st.markdown("""
 <style>
 @keyframes cardIn {
@@ -785,17 +808,68 @@ if page == "📖 1. 매뉴얼":
     st.caption("My Little Bookstore — 헥사소트 퍼즐 레벨 난이도 설계 & 분석 도구" if not IS_EN else "My Little Bookstore — Hexasort Puzzle Level Difficulty Design & Analysis Tool")
 
     st.markdown("---")
-    st.markdown("## 이 앱은 무엇인가요?")
-    st.markdown("""
-**Puzzle Creator**는 헥사소트 퍼즐 게임 *My Little Bookstore*의 레벨 난이도를 **설계하고 분석**하는 통합 도구입니다.
 
-시장 1위 헥사소트 게임의 Lv 1~100 판 구성 데이터(SKKU 게임센터 랩 실측)를 기준선으로 삼아,
-우리 게임의 판 모양과 스택 파라미터가 올바른 난이도 곡선을 따르도록 자동 생성 및 검증합니다.
-    """)
+    # ── 앱 목표 섹션 (한/영)
+    if not IS_EN:
+        st.markdown("## 🎯 이 앱의 목표")
+        st.markdown("""
+**Puzzle Creator**는 헥사소트 퍼즐 게임 *나의 작은 서점 (My Little Bookstore)*의
+레벨 난이도를 **데이터 기반으로 설계하고 자동 생성**하는 통합 도구입니다.
+
+### 배경 — 헥사소트 퍼즐이란?
+헥사소트(Hexasort)는 육각형 타일에 쌓인 색상 칩을 같은 색끼리 정렬하는 모바일 퍼즐 게임입니다.
+난이도는 두 가지 요소로 결정됩니다:
+- **초기 판 모양**: 타일 수, 스택 위치, 잠금 타일, 기믹 배치 등
+- **게임 진행 파라미터**: 할당량, 색상 풀, 중복률, 색상 추가 시점 등
+
+### 왜 만들었나요?
+| 문제 | 기존 방식 | Puzzle Creator |
+|---|---|---|
+| 500개 레벨 생성 | PPT 수작업 (작업자 직접) | 공식 기반 자동 생성 |
+| 난이도 기준 없음 | 주관적 판단 | 시장 데이터 기반 객관화 |
+| 판 확인 불가 | JSON 파일 직접 열어봄 | 헥사 그리드 시각화 |
+| 가중치 조정 어려움 | 코드 수정 후 재실행 | 슬라이더 실시간 조정 |
+
+### 어떻게 객관화했나요?
+SKKU 게임센터 랩에서 시장 1위 헥사소트 게임의 **Lv 1~100을 직접 플레이하며 판 구성 데이터를 수집**했습니다.
+이 실측 데이터에서 **H1-1~H1-15 총 15개 지표**를 정의하고, 이를 정규화·가중치 합산하여
+레벨별 난이도 점수(0~100)를 계산한 뒤 **지수수렴 난이도 곡선 공식**을 도출했습니다.
+        """)
+    else:
+        st.markdown("## 🎯 What This App Does")
+        st.markdown("""
+**Puzzle Creator** is an integrated tool for **data-driven level difficulty design and automated generation**
+for the hexasort puzzle game *My Little Bookstore*.
+
+### Background — What is Hexasort?
+Hexasort is a mobile puzzle game where players sort colored chips stacked on hexagonal tiles by matching colors.
+Difficulty is determined by two components:
+- **Initial board layout**: tile count, stack positions, locked tiles, gimmick placement, etc.
+- **Gameplay parameters**: allocation target, color pool, duplication rate, color unlock timing, etc.
+
+### Why was this built?
+| Problem | Previous Approach | Puzzle Creator |
+|---|---|---|
+| Generate 500 levels | Manual PowerPoint work | Auto-generation via formula |
+| No difficulty standard | Subjective judgment | Objectified via market data |
+| Can't preview boards | Open JSON files manually | Hex grid visualization |
+| Hard to tune weights | Edit code & re-run | Real-time slider adjustment |
+
+### How was it objectified?
+The SKKU Game Center Lab **directly played and collected board data from Levels 1–100** of the
+top-ranked hexasort game on the market. From this real-world dataset, **15 indicators (H1-1~H1-15)**
+were defined, normalized, and weighted to compute a difficulty score (0–100) per level,
+from which an **exponential convergence difficulty curve formula** was derived.
+        """)
 
     st.markdown("---")
-    st.markdown("## 전체 데이터 흐름")
-    st.code("""
+    if not IS_EN:
+        st.markdown("## 전체 데이터 흐름")
+    else:
+        st.markdown("## Data Pipeline")
+
+    if not IS_EN:
+        st.code("""
 ① 시장 데이터 분석
    market_lv1_100.csv (SKKU 게임센터 랩 실측, Lv 1~100)
         | H1-1~H1-15 지표 추출 + 가중치 합산
@@ -816,10 +890,33 @@ if page == "📖 1. 매뉴얼":
 
 ③ 시각화 & 검증 (이 앱)
    JSON + tblStage -> 난이도 곡선 비교 / 판 모양 확인 / 재생성
-    """, language="")
+        """, language="")
+    else:
+        st.code("""
+① Market Data Analysis
+   market_lv1_100.csv (SKKU Game Center Lab, real-world Lv 1~100)
+        | Extract H1-1~H1-15 indicators + weighted sum
+   Compute board_score -> derive difficulty curve pattern
+        |
+   target(N) = (70 - 52 x e^(-N/90)) + 3.71 + local_var[(N-1) mod 100]
+
+② JSON Board Generation (generate_levels.py)
+   Set target(N) as difficulty goal
+        | Retry board generation (max 10 times)
+   Select board where board_score ≈ target(N)
+        |
+   stack_score_target = target(N) x 2 - board_score
+        | Inverse calculation
+   Auto-compute tblStage parameters
+        |
+   Integrated difficulty = (board_score + stack_score) / 2 ≈ target(N)
+
+③ Visualization & Validation (this app)
+   JSON + tblStage -> Compare curves / Preview boards / Regenerate
+        """, language="")
 
     st.markdown("---")
-    st.markdown("## 탭 안내")
+    st.markdown("## Tab Guide" if IS_EN else "## 탭 안내")
     cols = st.columns(2)
     tabs_info = [
         ("📖 1. 매뉴얼", "지금 보고 계신 페이지입니다. 전체 흐름, 용어, 파일 구조를 안내합니다."),
@@ -838,7 +935,7 @@ if page == "📖 1. 매뉴얼":
 </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("## 파일 구조")
+    st.markdown("## File Structure" if IS_EN else "## 파일 구조")
     st.markdown("""
 | 파일 | 위치 | 설명 |
 |---|---|---|
@@ -853,7 +950,7 @@ if page == "📖 1. 매뉴얼":
     """)
 
     st.markdown("---")
-    st.markdown("## JSON 업데이트 방법")
+    st.markdown("## How to Update JSONs" if IS_EN else "## JSON 업데이트 방법")
     st.markdown("""
 **방법 A — 앱에서 직접 생성 (추천)**
 1. `🎲 4. JSON 생성기` 탭으로 이동
@@ -870,7 +967,7 @@ if page == "📖 1. 매뉴얼":
     """)
 
     st.markdown("---")
-    st.markdown("## 용어 사전")
+    st.markdown("## Glossary" if IS_EN else "## 용어 사전")
 
     with st.expander("TileType — 셀 종류"):
         st.markdown("""
@@ -961,17 +1058,17 @@ target(N) = (70 - 52 x e^(-N/90)) + 3.71 + local_var[(N-1) mod 100]
 # ══════════════════════════════════════════════════════
 elif page == "📊 2. 난이도 분석":
     st.markdown('<div class="page-anim">', unsafe_allow_html=True)
-    st.title("📊 난이도 분석")
-    st.caption("시장 데이터 기준선 vs 우리 게임 통합 난이도 비교 + 가중치 조정")
+    st.title("📊 Difficulty Analysis" if IS_EN else "📊 난이도 분석")
+    st.caption("Market data baseline vs our game integrated difficulty + weight adjustment" if IS_EN else "시장 데이터 기준선 vs 우리 게임 통합 난이도 비교 + 가중치 조정")
 
     intg   = st.session_state.intg_df
     market = st.session_state.market_df
 
     # ── 시장 데이터 원본 테이블 (곡선 위쪽)
-    with st.expander(f"📋 시장 데이터 원본 (Lv 1~100) — 클릭하여 펼치기", expanded=False):
+    with st.expander("📋 Market Data Raw (Lv 1~100) — Click to expand" if IS_EN else "📋 시장 데이터 원본 (Lv 1~100) — 클릭하여 펼치기", expanded=False):
         if market is not None:
             src = st.session_state.get("market_source", "로컬")
-            st.caption(f"SKKU 게임센터 랩 실측 데이터 · {len(market)}개 레벨 · 출처: {src}")
+            st.caption(f"SKKU Game Center Lab real data · {len(market)} levels · Source: {src}" if IS_EN else f"SKKU 게임센터 랩 실측 데이터 · {len(market)}개 레벨 · 출처: {src}")
             # 원본 테이블
             mk_show = market.copy()
             if "Stage" in mk_show.columns:
@@ -979,13 +1076,13 @@ elif page == "📊 2. 난이도 분석":
                     lambda x: str(x).strip().lstrip("-").isdigit() if pd.notna(x) else False)]
             st.dataframe(mk_show.reset_index(drop=True), use_container_width=True, height=300)
             # H1 지표 추이 차트
-            st.markdown("**H1 지표별 원시값 추이**")
+            st.markdown("**H1 Indicator Raw Trends**" if IS_EN else "**H1 지표별 원시값 추이**")
             mk_cols_norm = {c.strip(): c for c in mk_show.columns}
             h1_avail = [mk_cols_norm[c] for c in
                         ["H1-1","H1-2","H1-3","H1-4","H1-5",
                          "H1-6","H1-7","H1-8","H1-9","H1-12","H1-13","H1-14"]
                         if c in mk_cols_norm]
-            sel_h1 = st.multiselect("표시할 지표", h1_avail,
+            sel_h1 = st.multiselect("Show Indicators" if IS_EN else "표시할 지표", h1_avail,
                                      default=h1_avail[:4], key="market_h1_sel")
             if sel_h1 and "Stage" in mk_show.columns:
                 mk_valid = mk_show.copy()
@@ -1013,13 +1110,13 @@ elif page == "📊 2. 난이도 분석":
     st.markdown("---")
 
     # ── 가중치 슬라이더 (차트 위)
-    st.subheader("⚖️ 판:게임진행 가중치 조정")
+    st.subheader("⚖️ Board:Gameplay Weight Adjustment" if IS_EN else "⚖️ 판:게임진행 가중치 조정")
     if intg is not None:
         w_b = st.slider("판 모양 가중치 (%)", 0, 100, st.session_state.w_board, key="sl_wboard")
         w_g = 100 - w_b
         st.session_state.w_board    = w_b
         st.session_state.w_gameplay = w_g
-        st.caption(f"판 모양 **{w_b}%** : 게임 진행 **{w_g}%**")
+        st.caption(f"Board **{w_b}%** : Gameplay **{w_g}%**" if IS_EN else f"판 모양 **{w_b}%** : 게임 진행 **{w_g}%**")
     else:
         w_b = st.session_state.w_board
         w_g = st.session_state.w_gameplay
@@ -1037,7 +1134,7 @@ elif page == "📊 2. 난이도 분석":
     st.markdown("---")
 
     # ── 비교 차트
-    st.subheader("📈 난이도 곡선 비교")
+    st.subheader("📈 Difficulty Curve Comparison" if IS_EN else "📈 난이도 곡선 비교")
 
     n_all  = np.arange(1, 501)
     fig = go.Figure()
@@ -1179,7 +1276,7 @@ elif page == "📊 2. 난이도 분석":
     st.markdown("---")
 
     # ── 하단: 우리 난이도 구간 분석
-    st.subheader("📉 우리 난이도 구간 분석")
+    st.subheader("📉 Our Difficulty Zone Analysis" if IS_EN else "📉 우리 난이도 구간 분석")
     if True:
         if intg is None:
             st.warning("사이드바에서 integrated_difficulty.csv를 업로드해주세요.")
@@ -1195,7 +1292,7 @@ elif page == "📊 2. 난이도 분석":
             c3.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.min():.1f}</div><div class="metric-lbl">최저점 (Lv{custom_intg.idxmin()+1})</div></div>', unsafe_allow_html=True)
             st.markdown("")
 
-            zone_size = st.select_slider("구간 크기", [10, 25, 50, 100], value=50, key="zone_sz")
+            zone_size = st.select_slider("Zone Size" if IS_EN else "구간 크기", [10, 25, 50, 100], value=50, key="zone_sz")
 
             # 구간별 집계
             zones = []
@@ -1208,7 +1305,7 @@ elif page == "📊 2. 난이도 분석":
                 gameplay_contrib = round(s2["gameplay_score"].mean() * w_g / 100, 1)
                 integrated_avg   = round(ci.mean(), 1)
                 zones.append({
-                    "구간": label,
+                    "Zone" if IS_EN else "구간": label,
                     "판 모양 기여": board_contrib,
                     "게임 진행 기여": gameplay_contrib,
                     "통합 평균": integrated_avg,
@@ -1233,7 +1330,7 @@ elif page == "📊 2. 난이도 분석":
 
             # 누적 막대: 판 모양 기여 (아래)
             fig3.add_trace(go.Bar(
-                x=zdf["구간"], y=zdf["판 모양 기여"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["판 모양 기여"],
                 name=f"판 모양 ({w_b}%)",
                 marker_color="#fa8c16",
                 text=zdf["판 모양 기여"].apply(lambda v: f"{v:.1f}"),
@@ -1242,7 +1339,7 @@ elif page == "📊 2. 난이도 분석":
             ))
             # 누적 막대: 게임 진행 기여 (위)
             fig3.add_trace(go.Bar(
-                x=zdf["구간"], y=zdf["게임 진행 기여"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["게임 진행 기여"],
                 name=f"게임 진행 ({w_g}%)",
                 marker_color="#1890ff",
                 text=zdf["게임 진행 기여"].apply(lambda v: f"{v:.1f}"),
@@ -1251,7 +1348,7 @@ elif page == "📊 2. 난이도 분석":
             ))
             # 통합 평균 꺾은선
             fig3.add_trace(go.Scatter(
-                x=zdf["구간"], y=zdf["통합 평균"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["통합 평균"],
                 name="통합 난이도", mode="lines+markers+text",
                 line=dict(color="#3fb950", width=2.5),
                 marker=dict(size=7, color="#3fb950"),
@@ -1261,7 +1358,7 @@ elif page == "📊 2. 난이도 분석":
             ))
             # target(N) 기준선
             fig3.add_trace(go.Scatter(
-                x=zdf["구간"], y=zdf["게임 진행 목표"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["게임 진행 목표"],
                 name="게임 진행 목표", mode="lines+markers",
                 line=dict(color="#f5222d", width=1.5, dash="dot"),
                 marker=dict(size=5, color="#f5222d"),
@@ -1279,7 +1376,7 @@ elif page == "📊 2. 난이도 분석":
             st.plotly_chart(fig3, use_container_width=True)
 
             # 표 (raw 값 포함)
-            show_cols = ["구간", "판 모양 (raw)", "게임 진행 (raw)", "통합 평균", "게임 진행 목표"]
+            show_cols = ["Zone" if IS_EN else "구간", "판 모양 (raw)", "게임 진행 (raw)", "통합 평균", "게임 진행 목표"]
             st.dataframe(zdf[show_cols].rename(columns={
                 "판 모양 (raw)": f"판 모양 ({w_b}%)",
                 "게임 진행 (raw)": f"게임 진행 ({w_g}%)",
@@ -1289,9 +1386,9 @@ elif page == "📊 2. 난이도 분석":
 # ══════════════════════════════════════════════════════
 elif page == "🗺️ 3. 판 모양 뷰어":
     st.markdown('<div class="page-anim">', unsafe_allow_html=True)
-    st.title("🗺️ 판 모양 뷰어 / JSON 생성기")
+    st.title("🗺️ Board Viewer / JSON Generator" if IS_EN else "🗺️ 판 모양 뷰어 / JSON 생성기")
 
-    view_tab, edit_tab = st.tabs(["🔍 레벨 뷰어 & 편집", "✏️ 새 판 만들기"])
+    view_tab, edit_tab = st.tabs(["🔍 Level Viewer & Edit" if IS_EN else "🔍 레벨 뷰어 & 편집", "✏️ New Board" if IS_EN else "✏️ 새 판 만들기"])
 
     # ── 뷰어 & 인라인 편집
     with view_tab:
@@ -1473,7 +1570,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
 
     # ── 편집기
     with edit_tab:
-        st.caption("XCells·YCells 설정 → 행/열로 셀 선택 → 타입 지정 → 셀 적용 → JSON 저장")
+        st.caption("Set XCells·YCells → Select cell → Set type → Apply → Save JSON" if IS_EN else "XCells·YCells 설정 → 행/열로 셀 선택 → 타입 지정 → 셀 적용 → JSON 저장")
 
         # 그리드 크기 설정
         ec1,ec2,ec3 = st.columns([1,1,2])
@@ -1768,8 +1865,8 @@ elif page == "🗺️ 3. 판 모양 뷰어":
 # ══════════════════════════════════════════════════════
 elif page == "🎲 4. JSON 생성기":
     st.markdown('<div class="page-anim">', unsafe_allow_html=True)
-    st.title("🎲 JSON 생성기")
-    st.caption("난이도 곡선 기반으로 레벨 범위를 선택해 JSON 파일을 생성하고 다운로드합니다.")
+    st.title("🎲 JSON Generator" if IS_EN else "🎲 JSON 생성기")
+    st.caption("Select level range to generate and download JSON files based on difficulty curve." if IS_EN else "난이도 곡선 기반으로 레벨 범위를 선택해 JSON 파일을 생성하고 다운로드합니다.")
 
     from generate_levels import generate_range_zip, target_diff as calc_diff
 
@@ -1779,8 +1876,8 @@ elif page == "🎲 4. JSON 생성기":
         st.warning("사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
     else:
         # ── 난이도 곡선 미리보기
-        st.subheader("📈 난이도 곡선")
-        lv_range = st.slider("생성할 레벨 범위", 1, 500, (1, 50), key="gen_range")
+        st.subheader("📈 Difficulty Curve" if IS_EN else "📈 난이도 곡선")
+        lv_range = st.slider("Level Range" if IS_EN else "생성할 레벨 범위", 1, 500, (1, 50), key="gen_range")
         start_lv, end_lv = lv_range
         total_lv = end_lv - start_lv + 1
 
@@ -1818,15 +1915,15 @@ elif page == "🎲 4. JSON 생성기":
         # ── 선택 구간 요약
         sel_arr = sel_diffs
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("생성할 레벨 수", f"{total_lv}개")
-        c2.metric("평균 난이도", f"{sum(sel_arr)/len(sel_arr):.1f}")
-        c3.metric("최저", f"{min(sel_arr):.1f} (Lv{start_lv + sel_arr.index(min(sel_arr))})")
-        c4.metric("최고", f"{max(sel_arr):.1f} (Lv{start_lv + sel_arr.index(max(sel_arr))})")
+        c1.metric("Levels to Generate" if IS_EN else "생성할 레벨 수", f"{total_lv}개")
+        c2.metric("Avg Difficulty" if IS_EN else "평균 난이도", f"{sum(sel_arr)/len(sel_arr):.1f}")
+        c3.metric("Min" if IS_EN else "최저", f"{min(sel_arr):.1f} (Lv{start_lv + sel_arr.index(min(sel_arr))})")
+        c4.metric("Max" if IS_EN else "최고", f"{max(sel_arr):.1f} (Lv{start_lv + sel_arr.index(max(sel_arr))})")
 
         st.markdown("---")
 
         # ── 생성 버튼
-        if st.button(f"🚀 Lv {start_lv}~{end_lv} JSON 생성 ({total_lv}개)", type="primary", use_container_width=True):
+        if st.button(f"🚀 Generate Lv {start_lv}~{end_lv} JSON ({total_lv} files)" if IS_EN else f"🚀 Lv {start_lv}~{end_lv} JSON 생성 ({total_lv}개)", type="primary", use_container_width=True):
 
             progress_bar = st.progress(0)
             status_text  = st.empty()
@@ -1848,8 +1945,8 @@ elif page == "🎲 4. JSON 생성기":
                 grade_name, emoji = GRADE_EMOJI[g]
                 progress_bar.progress(done / total)
                 status_text.markdown(
-                    f"⚙️ **Lv {lv_now}** 생성 중 &nbsp;|&nbsp; "
-                    f"난이도 **{diff_now}** &nbsp; {emoji} {grade_name} &nbsp;|&nbsp; "
+                    f"⚙️ **Lv {lv_now}** {"Generating" if IS_EN else "생성 중"} &nbsp;|&nbsp; "
+                    f"{"Difficulty" if IS_EN else "난이도"} **{diff_now}** &nbsp; {emoji} {grade_name} &nbsp;|&nbsp; "
                     f"({done}/{total})"
                 )
 
@@ -1858,7 +1955,7 @@ elif page == "🎲 4. JSON 생성기":
             zip_bytes = generate_range_zip(start_lv, end_lv, df_n, callback=on_progress)
 
             progress_bar.progress(1.0)
-            status_text.markdown(f"✅ **{total_lv}개 생성 완료!**")
+            status_text.markdown(f"✅ **Generation Complete!**" if IS_EN else "✅ **{total_lv}개 생성 완료!**")
 
             st.download_button(
                 label=f"📥 ZIP 다운로드 (N_{start_lv:03d} ~ N_{end_lv:03d}.json)",
@@ -1872,13 +1969,13 @@ elif page == "🎲 4. JSON 생성기":
 # ══════════════════════════════════════════════════════
 elif page == "🔧 5. 설정":
     st.markdown('<div class="page-anim">', unsafe_allow_html=True)
-    st.title("🔧 설정")
+    st.title("🔧 Settings" if IS_EN else "🔧 설정")
 
-    set_tab1, set_tab2, set_tab3 = st.tabs(["⚖️ H1 가중치 설정", "🎰 tblStage 가중치 설정", "📋 스택 파라미터 수정"])
+    set_tab1, set_tab2, set_tab3 = st.tabs([("⚖️ H1 Weight Settings" if IS_EN else "⚖️ H1 가중치 설정"), ("🎰 tblStage Weight Settings" if IS_EN else "🎰 tblStage 가중치 설정"), ("📋 Stack Parameter Editor" if IS_EN else "📋 스택 파라미터 수정")])
 
     # ── 가중치 세부 설정
     with set_tab1:
-        st.caption("각 H1 지표의 기여 비율을 설정합니다. 합계가 100%가 되도록 자동 정규화됩니다.")
+        st.caption("Set contribution ratio for each H1 indicator. Auto-normalized to 100%." if IS_EN else "각 H1 지표의 기여 비율을 설정합니다. 합계가 100%가 되도록 자동 정규화됩니다.")
 
         H1_INFO = [
             ('H1_1','전체 그리드 수',True),
@@ -1962,7 +2059,7 @@ elif page == "🔧 5. 설정":
 
     # ── tblStage 가중치 설정
     with set_tab2:
-        st.caption("tblStage 파라미터별 게임 진행 난이도 기여 가중치를 설정합니다.")
+        st.caption("Set gameplay difficulty contribution weights per tblStage parameter." if IS_EN else "tblStage 파라미터별 게임 진행 난이도 기여 가중치를 설정합니다.")
 
         STACK_INFO = [
             ('alloc',   'TotalAllocation (할당량)',        False, 10, 300),
@@ -2076,7 +2173,7 @@ elif page == "🔧 5. 설정":
         if tbl is None:
             st.warning("사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
         else:
-            st.caption("셀을 클릭해 직접 수정할 수 있습니다. 수정 후 Excel로 다운로드하세요.")
+            st.caption("Click cells to edit directly. Download as Excel after modification." if IS_EN else "셀을 클릭해 직접 수정할 수 있습니다. 수정 후 Excel로 다운로드하세요.")
             show_cols = st.multiselect(
                 "표시할 컬럼",
                 tbl.columns.tolist(),
@@ -2101,13 +2198,13 @@ elif page == "🔧 5. 설정":
 # ══════════════════════════════════════════════════════
 elif page == "🗄️ 6. 아카이브":
     st.markdown('<div class="page-anim">', unsafe_allow_html=True)
-    st.title("🗄️ 아카이브")
-    st.caption("설정값을 버전으로 저장하고 GitHub에 자동 커밋합니다.")
+    st.title("🗄️ Archive" if IS_EN else "🗄️ 아카이브")
+    st.caption("Save settings as versions and auto-commit to GitHub." if IS_EN else "설정값을 버전으로 저장하고 GitHub에 자동 커밋합니다.")
 
     ac1, ac2 = st.columns([1,1])
 
     with ac1:
-        st.subheader("💾 현재 설정 저장")
+        st.subheader("💾 Save Current Settings" if IS_EN else "💾 현재 설정 저장")
         version_name = st.text_input("버전명", f"v_{datetime.now().strftime('%Y%m%d_%H%M')}")
         version_memo = st.text_area("메모", placeholder="예: H1-7 강화 테스트, board 가중치 60%로 조정")
 
@@ -2143,7 +2240,7 @@ elif page == "🗄️ 6. 아카이브":
                     st.error(f"❌ 커밋 실패: {resp.get('message','')}")
 
     with ac2:
-        st.subheader("📂 버전 불러오기")
+        st.subheader("📂 Load Version" if IS_EN else "📂 버전 불러오기")
         up_archive = st.file_uploader("저장된 버전 JSON 업로드", type=["json"], key="up_arch")
         if up_archive:
             arch = json.load(up_archive)
@@ -2160,7 +2257,7 @@ elif page == "🗄️ 6. 아카이브":
 
     # 이번 세션 저장 기록
     if st.session_state.archives:
-        st.subheader("📋 이번 세션 저장 기록")
+        st.subheader("📋 Session Save History" if IS_EN else "📋 이번 세션 저장 기록")
         arch_df = pd.DataFrame([{
             '버전': a['version'],
             '저장 시각': a['timestamp'][:19],
@@ -2172,7 +2269,7 @@ elif page == "🗄️ 6. 아카이브":
 
         # 버전 비교
         if len(st.session_state.archives) >= 2:
-            st.subheader("📊 버전 비교 (난이도 곡선)")
+            st.subheader("📊 Version Comparison (Difficulty Curve)" if IS_EN else "📊 버전 비교 (난이도 곡선)")
             intg = st.session_state.intg_df
             if intg is not None:
                 sel_versions = st.multiselect("비교할 버전 선택 (최대 3개)",
