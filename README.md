@@ -4,9 +4,9 @@
 > 헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://my-little-bookstorepuzzle-creator-ebmpaoaz3dupvmmmhdfm3m.streamlit.app)
-![Python](https://img.shields.io/badge/Python-3.10+-brown?logo=python)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.58-brown?logo=streamlit)
-![License](https://img.shields.io/badge/License-MIT-brown)
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.58-red?logo=streamlit&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
@@ -174,7 +174,9 @@ for lv in range(1, 501):
 
 ## 📐 Difficulty Formula
 
-$$\text{target}(N) = \underbrace{(70 - 52 \times e^{-N/90})}_{\text{base curve}} + 3.71 + \text{local\_var}[(N-1) \bmod 100]$$
+```
+target(N) = (70 − 52 × e^(−N/90)) + 3.71 + local_var[(N−1) mod 100]
+```
 
 - **Base curve**: Exponential convergence — Lv1 ≈ 18pt → Lv100 ≈ 48pt → ~74pt ceiling
 - **local_var**: 100-value oscillation pattern extracted from market data (repeats every 100 levels)
