@@ -603,7 +603,7 @@ with st.sidebar:
     st.markdown("---")
 
     # ── 파일 업로드
-    st.markdown('<div class="sidebar-label">📂 파일 업로드</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sidebar-label">{"📂 File Upload" if IS_EN else "📂 파일 업로드"}</div>', unsafe_allow_html=True)
 
     up_intg = st.file_uploader("integrated_difficulty.csv", type=["csv"], key="up_intg")
     if up_intg:
@@ -646,7 +646,7 @@ with st.sidebar:
             raw.columns = raw.columns.str.strip()
             st.session_state.market_df = raw
             st.session_state.market_source = "기본 내장"
-            st.markdown('<span class="file-badge">✓ 시장 데이터 (기본 내장)</span>', unsafe_allow_html=True)
+            st.markdown('<span class="file-badge">✓ Market Data (Built-in)" if IS_EN else "시장 데이터 (기본 내장)</span>', unsafe_allow_html=True)
         except Exception:
             st.markdown('<span class="file-badge-warn">⚠ 시장 데이터 로드 실패</span>', unsafe_allow_html=True)
     else:
@@ -655,12 +655,12 @@ with st.sidebar:
     st.markdown("---")
 
     # ── 다운로드
-    st.markdown('<div class="sidebar-label">📥 다운로드</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sidebar-label">{"📥 Download" if IS_EN else "📥 다운로드"}</div>', unsafe_allow_html=True)
     intg = st.session_state.intg_df
     if intg is not None:
-        st.download_button("CSV — 통합 난이도", df_to_csv_bytes(intg),
+        st.download_button("CSV — Integrated Difficulty" if IS_EN else "CSV — 통합 난이도", df_to_csv_bytes(intg),
                            "integrated_difficulty.csv", "text/csv", use_container_width=True)
-        st.download_button("JSON — 통합 난이도", df_to_json_bytes(intg),
+        st.download_button("JSON — Integrated Difficulty" if IS_EN else "JSON — 통합 난이도", df_to_json_bytes(intg),
                            "integrated_difficulty.json", "application/json", use_container_width=True)
     else:
         st.caption("Available after file upload" if IS_EN else "파일 업로드 후 다운로드 가능")
@@ -668,7 +668,7 @@ with st.sidebar:
     st.markdown("---")
 
     # ── GitHub 토큰
-    with st.expander("🔑 GitHub 설정"):
+    with st.expander("🔑 GitHub Settings" if IS_EN else "🔑 GitHub 설정"):
         token_input = st.text_input("Personal Access Token", type="password",
                                     value=st.session_state.github_token)
         if token_input:
@@ -679,7 +679,7 @@ with st.sidebar:
 
     st.markdown("---")
     # ── 언어 (후순위)
-    st.markdown('<div class="sidebar-label">🌐 언어 (준비 중)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-label">🌐 Language</div>', unsafe_allow_html=True)
     lang_sel = st.radio(
         "🌐 Language",
         ["한국어", "English"],
@@ -1209,7 +1209,7 @@ elif page == "📊 2. 난이도 분석":
                 fig_mk.update_layout(
                     height=300,
                     plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-                    font_color=T["text"], xaxis_title="Level" if IS_EN else "레벨", yaxis_title="값",
+                    font_color=T["text"], xaxis_title="Level" if IS_EN else "Level" if IS_EN else "레벨", yaxis_title="값",
                     xaxis=dict(gridcolor=T["grid_line"]),
                     yaxis=dict(gridcolor=T["grid_line"]),
                     legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
@@ -1224,7 +1224,7 @@ elif page == "📊 2. 난이도 분석":
     # ── 가중치 슬라이더 (차트 위)
     st.subheader("⚖️ Board:Gameplay Weight Adjustment" if IS_EN else "⚖️ 판:게임진행 가중치 조정")
     if intg is not None:
-        w_b = st.slider("판 모양 가중치 (%)", 0, 100, st.session_state.w_board, key="sl_wboard")
+        w_b = st.slider("Board weight (%)" if IS_EN else "판 모양 가중치 (%)", 0, 100, st.session_state.w_board, key="sl_wboard")
         w_g = 100 - w_b
         st.session_state.w_board    = w_b
         st.session_state.w_gameplay = w_g
@@ -1235,13 +1235,13 @@ elif page == "📊 2. 난이도 분석":
         st.info("integrated_difficulty.csv를 사이드바에서 업로드하면 가중치를 조정할 수 있습니다.")
 
     # ── 차트 표시 옵션
-    st.markdown("**표시할 곡선 선택**")
+    st.markdown("**Select Curves**" if IS_EN else "**표시할 곡선 선택**")
     oc1, oc2, oc3, oc4, oc5 = st.columns(5)
     show_target   = oc1.checkbox("Stack Difficulty" if IS_EN else "스택 난이도", True)
     show_market   = oc2.checkbox("Market Board" if IS_EN else "시장 board", True)
-    show_our_intg = oc3.checkbox("우리 통합", True)
-    show_our_board= oc4.checkbox("우리 board (정규화)", False)
-    show_our_full = oc5.checkbox("우리 board+스택 (정규화)", False)
+    show_our_intg = oc3.checkbox("Our Integrated" if IS_EN else "우리 통합", True)
+    show_our_board= oc4.checkbox("Our Board (normalized)" if IS_EN else "우리 board (정규화)", False)
+    show_our_full = oc5.checkbox("Our Board+Stack (norm)" if IS_EN else "우리 board+스택 (정규화)", False)
 
     st.markdown("---")
 
@@ -1358,7 +1358,7 @@ elif page == "📊 2. 난이도 분석":
 
     fig.update_layout(
         height=440, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-        font_color=T["text"], xaxis_title="Level" if IS_EN else "레벨", yaxis_title="난이도 점수",
+        font_color=T["text"], xaxis_title="Level" if IS_EN else "Level" if IS_EN else "레벨", yaxis_title="난이도 점수",
         yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
         xaxis=dict(gridcolor=T["grid_line"]),
         legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
@@ -1380,9 +1380,9 @@ elif page == "📊 2. 난이도 분석":
         result_df["custom_smoothed"]   = custom_sm.round(2)
         result_df.insert(0, "level", range(1, len(result_df)+1))
         dc1, dc2 = st.columns(2)
-        dc1.download_button("📥 CSV 다운로드", df_to_csv_bytes(result_df),
+        dc1.download_button("📥 CSV Download" if IS_EN else "📥 CSV 다운로드", df_to_csv_bytes(result_df),
             f"integrated_w{w_b}_{w_g}.csv", "text/csv", use_container_width=True)
-        dc2.download_button("📥 JSON 다운로드", df_to_json_bytes(result_df),
+        dc2.download_button("📥 JSON Download" if IS_EN else "📥 JSON 다운로드", df_to_json_bytes(result_df),
             f"integrated_w{w_b}_{w_g}.json", "application/json", use_container_width=True)
 
     st.markdown("---")
@@ -1399,9 +1399,9 @@ elif page == "📊 2. 난이도 분석":
             custom_intg = (intg["board_score"] * w_b + intg["gameplay_score"] * w_g) / 100
 
             c1, c2, c3 = st.columns(3)
-            c1.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.mean():.1f}</div><div class="metric-lbl">평균 통합 난이도</div></div>', unsafe_allow_html=True)
-            c2.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.max():.1f}</div><div class="metric-lbl">최고점 (Lv{custom_intg.idxmax()+1})</div></div>', unsafe_allow_html=True)
-            c3.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.min():.1f}</div><div class="metric-lbl">최저점 (Lv{custom_intg.idxmin()+1})</div></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.mean():.1f}</div><div class="metric-lbl">{"Avg Integrated" if IS_EN else "평균 통합 난이도"}</div></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.max():.1f}</div><div class="metric-lbl">{"Peak" if IS_EN else "최고점"} (Lv{custom_intg.idxmax()+1})</div></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="metric-card"><div class="metric-val">{custom_intg.min():.1f}</div><div class="metric-lbl">{"Bottom" if IS_EN else "최저점"} (Lv{custom_intg.idxmin()+1})</div></div>', unsafe_allow_html=True)
             st.markdown("")
 
             zone_size = st.select_slider("Zone Size" if IS_EN else "구간 크기", [10, 25, 50, 100], value=50, key="zone_sz")
@@ -1418,8 +1418,8 @@ elif page == "📊 2. 난이도 분석":
                 integrated_avg   = round(ci.mean(), 1)
                 zones.append({
                     "Zone" if IS_EN else "구간": label,
-                    "Board Contribution" if IS_EN else "판 모양 기여": board_contrib,
-                    "Gameplay Contribution" if IS_EN else "게임 진행 기여": gameplay_contrib,
+                    "Board Contribution" if IS_EN else "Board Contribution" if IS_EN else "판 모양 기여": board_contrib,
+                    "Gameplay Contribution" if IS_EN else "Gameplay Contribution" if IS_EN else "게임 진행 기여": gameplay_contrib,
                     "Integrated Avg" if IS_EN else "통합 평균": integrated_avg,
                     "Board (raw)": round(s2["board_score"].mean(), 1),
                     "Gameplay (raw)": round(s2["gameplay_score"].mean(), 1),
@@ -1442,19 +1442,19 @@ elif page == "📊 2. 난이도 분석":
 
             # 누적 막대: 판 모양 기여 (아래)
             fig3.add_trace(go.Bar(
-                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Board Contribution" if IS_EN else "판 모양 기여"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Board Contribution" if IS_EN else "Board Contribution" if IS_EN else "판 모양 기여"],
                 name=f"판 모양 ({w_b}%)",
                 marker_color="#fa8c16",
-                text=zdf["Board Contribution" if IS_EN else "판 모양 기여"].apply(lambda v: f"{v:.1f}"),
+                text=zdf["Board Contribution" if IS_EN else "Board Contribution" if IS_EN else "판 모양 기여"].apply(lambda v: f"{v:.1f}"),
                 textposition="inside",
                 textfont=dict(size=10, color="white"),
             ))
             # 누적 막대: 게임 진행 기여 (위)
             fig3.add_trace(go.Bar(
-                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Gameplay Contribution" if IS_EN else "게임 진행 기여"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Gameplay Contribution" if IS_EN else "Gameplay Contribution" if IS_EN else "게임 진행 기여"],
                 name=f"게임 진행 ({w_g}%)",
                 marker_color="#1890ff",
-                text=zdf["Gameplay Contribution" if IS_EN else "게임 진행 기여"].apply(lambda v: f"{v:.1f}"),
+                text=zdf["Gameplay Contribution" if IS_EN else "Gameplay Contribution" if IS_EN else "게임 진행 기여"].apply(lambda v: f"{v:.1f}"),
                 textposition="inside",
                 textfont=dict(size=10, color="white"),
             ))
@@ -1480,7 +1480,7 @@ elif page == "📊 2. 난이도 분석":
                 height=380, barmode="stack",
                 plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
                 font_color=T["text"],
-                yaxis=dict(range=[0, 105], gridcolor=T["grid_line"], title="난이도"),
+                yaxis=dict(range=[0, 105], gridcolor=T["grid_line"], title="Difficulty" if IS_EN else "난이도"),
                 xaxis=dict(gridcolor=T["grid_line"]),
                 legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
                 margin=dict(l=10, r=10, t=40, b=10),
@@ -1507,11 +1507,11 @@ elif page == "🗺️ 3. 판 모양 뷰어":
         # ── 소스 선택
         vc1, vc2 = st.columns([1,3])
         with vc1:
-            src = st.radio("소스", ["레벨 번호","JSON 업로드"], horizontal=True)
+            src = st.radio("Source" if IS_EN else "Source" if IS_EN else "소스", ["Level Number" if IS_EN else "레벨 번호","JSON Upload" if IS_EN else "JSON 업로드"], horizontal=True)
             data = None
             fname_default = "N_001.json"
-            if src == "레벨 번호":
-                lv = st.number_input("Level" if IS_EN else "레벨", 1, 500, 1)
+            if src == "Level Number" if IS_EN else "레벨 번호":
+                lv = st.number_input("Level" if IS_EN else "Level" if IS_EN else "레벨", 1, 500, 1)
                 fname_default = f"N_{int(lv):03d}.json"
                 data = load_level_local(int(lv))
                 if data is None:
@@ -1559,7 +1559,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                 st.download_button("📥 H1 CSV", df_to_csv_bytes(h1df),
                                    "h1_metrics.csv", "text/csv", use_container_width=True)
 
-            show_coord = st.checkbox("Show Coordinates" if IS_EN else "좌표 표시", False)
+            show_coord = st.checkbox("Show Coordinates" if IS_EN else "Show Coordinates" if IS_EN else "Show Coordinates" if IS_EN else "좌표 표시", False)
             show_chips = st.checkbox("Show Chip Colors" if IS_EN else "Show Chip Colors" if IS_EN else "칩 색상 표시", True)
             hex_size   = st.slider("헥사 크기", 20, 60, 38)
 
@@ -1597,7 +1597,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                     if new_type in ('StackLock','Ice'):
                         ul_val = ep4.number_input("UnlockLevel", 0, 9999, cur.get('UnlockLevel',0), key="ve_ul")
 
-                    if st.button("✅ 셀 적용", key="ve_apply"):
+                    if st.button("✅ Apply" if IS_EN else "✅ Apply Cell" if IS_EN else "✅ 셀 적용", key="ve_apply"):
                         new_cell = {'TileType': TILE_REV[new_type]}
                         if new_type in ('Stack','StackLock','Ice'): new_cell['Stacks'] = new_stacks
                         if new_type in ('Lock','Plank'): new_cell['Level'] = lv_val
@@ -1659,7 +1659,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                     json_out = json.dumps(work_data, ensure_ascii=False, indent=2).encode("utf-8")
 
                     sc1, sc2 = st.columns(2)
-                    sc1.download_button("📥 JSON 다운로드", json_out,
+                    sc1.download_button("📥 JSON Download" if IS_EN else "📥 JSON 다운로드", json_out,
                                         save_fname, "application/json", use_container_width=True)
 
                     if sc2.button("☁️ GitHub에 저장", use_container_width=True, key="ve_github"):
@@ -1688,7 +1688,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
         ec1,ec2,ec3 = st.columns([1,1,2])
         new_x = ec1.number_input("XCells",3,10,st.session_state.grid_x,key="nx")
         new_y = ec2.number_input("YCells",3,10,st.session_state.grid_y,key="ny")
-        if ec3.button("🔄 그리드 초기화") or st.session_state.grid_tiles is None \
+        if ec3.button("🔄 Reset Grid" if IS_EN else "🔄 Reset Grid" if IS_EN else "🔄 그리드 초기화") or st.session_state.grid_tiles is None \
                 or len(st.session_state.grid_tiles)!=new_y \
                 or len(st.session_state.grid_tiles[0])!=new_x:
             st.session_state.grid_x = new_x
@@ -1704,8 +1704,8 @@ elif page == "🗺️ 3. 판 모양 뷰어":
         with icol:
             # ── 셀 선택
             st.markdown("### 📍 Cell Selection" if IS_EN else "### 📍 셀 선택")
-            sel_y = st.number_input("행 (Y, 위→아래)", 0, Y_e-1, 0, key="sel_y")
-            sel_x = st.number_input("열 (X, 좌→우)",  0, X_e-1, 0, key="sel_x")
+            sel_y = st.number_input("Row (Y, top→bottom)" if IS_EN else "Row (Y)" if IS_EN else "행 (Y, 위→아래)", 0, Y_e-1, 0, key="sel_y")
+            sel_x = st.number_input("Column (X, left→right)" if IS_EN else "Column (X)" if IS_EN else "열 (X, 좌→우)",  0, X_e-1, 0, key="sel_x")
 
             cur_tile = tiles_e[sel_y][sel_x]
             cur_type = TILETYPE.get(cur_tile.get('TileType', 0), 'Normal')
@@ -1800,7 +1800,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                 ul_val = st.number_input("UnlockLevel", 0, 9999,
                                           cur_tile.get('UnlockLevel', 0), key="sel_ul")
 
-            if st.button("✅ 셀 적용", use_container_width=True):
+            if st.button("✅ Apply" if IS_EN else "✅ Apply Cell" if IS_EN else "✅ 셀 적용", use_container_width=True):
                 new_cell = {'TileType': TILE_REV[new_type]}
                 if new_type in ('Stack', 'StackLock', 'Ice'):
                     new_cell['Stacks'] = new_stacks
@@ -1821,7 +1821,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                 "XCells": X_e, "YCells": Y_e,
                 "Tiles": st.session_state.grid_tiles
             }, ensure_ascii=False, indent=2).encode("utf-8")
-            st.download_button("📥 JSON 다운로드", json_out, fname,
+            st.download_button("📥 JSON Download" if IS_EN else "📥 JSON 다운로드", json_out, fname,
                                "application/json", use_container_width=True)
 
         # ── 그리드 미리보기 (좌측)
@@ -2017,8 +2017,8 @@ elif page == "🎲 4. JSON 생성기":
             height=320,
             plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
             font_color=T["text"],
-            xaxis=dict(title="Level" if IS_EN else "레벨", gridcolor=T["grid_line"]),
-            yaxis=dict(title="난이도", range=[0,105], gridcolor=T["grid_line"]),
+            xaxis=dict(title="Level" if IS_EN else "Level" if IS_EN else "레벨", gridcolor=T["grid_line"]),
+            yaxis=dict(title="Difficulty" if IS_EN else "난이도", range=[0,105], gridcolor=T["grid_line"]),
             legend=dict(orientation="h", y=1.1, bgcolor="rgba(0,0,0,0)"),
             margin=dict(l=10,r=10,t=30,b=10)
         )
@@ -2058,7 +2058,7 @@ elif page == "🎲 4. JSON 생성기":
                 progress_bar.progress(done / total)
                 status_text.markdown(
                     f"⚙️ **Lv {lv_now}** {"Generating" if IS_EN else "생성 중"} &nbsp;|&nbsp; "
-                    f"{"Difficulty" if IS_EN else "난이도"} **{diff_now}** &nbsp; {emoji} {grade_name} &nbsp;|&nbsp; "
+                    f"{"Difficulty" if IS_EN else "Difficulty" if IS_EN else "난이도"} **{diff_now}** &nbsp; {emoji} {grade_name} &nbsp;|&nbsp; "
                     f"({done}/{total})"
                 )
 
@@ -2067,10 +2067,10 @@ elif page == "🎲 4. JSON 생성기":
             zip_bytes = generate_range_zip(start_lv, end_lv, df_n, callback=on_progress)
 
             progress_bar.progress(1.0)
-            status_text.markdown(f"✅ **Generation Complete!**" if IS_EN else "✅ **{total_lv}개 생성 완료!**")
+            status_text.markdown(f"✅ **Generation Complete!**" if IS_EN else "✅ **{} files generated!**".format(total_lv) if IS_EN else "✅ **{}개 생성 완료!**".format(total_lv))
 
             st.download_button(
-                label=f"📥 ZIP 다운로드 (N_{start_lv:03d} ~ N_{end_lv:03d}.json)",
+                label=f"📥 Download ZIP (N_{start_lv:03d} ~ N_{end_lv:03d}.json)" if IS_EN else f"📥 ZIP 다운로드 (N_{start_lv:03d} ~ N_{end_lv:03d}.json)",
                 data=zip_bytes,
                 file_name=f"levels_{start_lv:03d}_{end_lv:03d}.zip",
                 mime="application/zip",
@@ -2302,7 +2302,7 @@ elif page == "🔧 5. 설정":
                     st.session_state.tbl_df[col] = edited[col]
 
                 # CSV 다운로드
-                st.download_button("📥 CSV 다운로드",df_to_csv_bytes(edited),
+                st.download_button("📥 CSV Download" if IS_EN else "📥 CSV 다운로드",df_to_csv_bytes(edited),
                                    "tblStage_edited.csv","text/csv",use_container_width=True)
 
 # ══════════════════════════════════════════════════════
@@ -2317,8 +2317,8 @@ elif page == "🗄️ 6. 아카이브":
 
     with ac1:
         st.subheader("💾 Save Current Settings" if IS_EN else "💾 현재 설정 저장")
-        version_name = st.text_input("버전명", f"v_{datetime.now().strftime('%Y%m%d_%H%M')}")
-        version_memo = st.text_area("메모", placeholder="예: H1-7 강화 테스트, board 가중치 60%로 조정")
+        version_name = st.text_input("Version Name" if IS_EN else "Version Name" if IS_EN else "버전명", f"v_{datetime.now().strftime('%Y%m%d_%H%M')}")
+        version_memo = st.text_area("Memo" if IS_EN else "Memo" if IS_EN else "메모", placeholder="예: H1-7 강화 테스트, board 가중치 60%로 조정")
 
         save_payload = {
             "version": version_name,
@@ -2334,7 +2334,7 @@ elif page == "🗄️ 6. 아카이브":
                            f"{version_name}.json","application/json",use_container_width=True)
 
         st.markdown("")
-        if st.button("☁️ GitHub에 커밋", use_container_width=True):
+        if st.button("☁️ Commit to GitHub" if IS_EN else "☁️ Commit to GitHub" if IS_EN else "☁️ GitHub에 커밋", use_container_width=True):
             token = st.session_state.github_token
             if not token:
                 st.error("사이드바 → 🔑 GitHub 설정에서 토큰을 먼저 입력해주세요.")
@@ -2353,7 +2353,7 @@ elif page == "🗄️ 6. 아카이브":
 
     with ac2:
         st.subheader("📂 Load Version" if IS_EN else "📂 버전 불러오기")
-        up_archive = st.file_uploader("저장된 버전 JSON 업로드", type=["json"], key="up_arch")
+        up_archive = st.file_uploader("Upload saved version JSON" if IS_EN else "Upload saved version JSON" if IS_EN else "저장된 버전 JSON 업로드", type=["json"], key="up_arch")
         if up_archive:
             arch = json.load(up_archive)
             st.json(arch)
