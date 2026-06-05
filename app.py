@@ -555,6 +555,9 @@ def load_level_local(lv):
 # ══════════════════════════════════════════════════════
 # 사이드바
 # ══════════════════════════════════════════════════════
+LANG = st.session_state.get("lang","한국어")
+IS_EN = (LANG == "English")
+
 with st.sidebar:
     st.markdown("""
 <div style="text-align:center;padding:8px 0 4px 0;">
@@ -565,7 +568,7 @@ with st.sidebar:
     st.markdown("---")
 
     # ── 페이지 선택
-    st.markdown('<div class="sidebar-label">페이지</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sidebar-label">{"Page" if IS_EN else "페이지"}</div>', unsafe_allow_html=True)
     if IS_EN:
         page_options = ["🏠 Home","📖 1. Manual","📊 2. Difficulty Analysis",
                         "🗺️ 3. Board Viewer","🎲 4. JSON Generator",
@@ -678,13 +681,13 @@ with st.sidebar:
     if lang_sel != st.session_state.get("lang","한국어"):
         st.session_state["lang"] = lang_sel
         st.rerun()
+    # 사이드바 내에서도 IS_EN 갱신
+    LANG = st.session_state.get("lang","한국어")
+    IS_EN = (LANG == "English")
 
 # ══════════════════════════════════════════════════════
 # 탭 0 — 홈
 # ══════════════════════════════════════════════════════
-LANG = st.session_state.get("lang","한국어")
-IS_EN = (LANG == "English")
-
 if page == "🏠 홈":
     GITHUB_RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
 
