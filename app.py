@@ -159,10 +159,19 @@ div[data-testid="stTabs"] button[aria-selected="true"] {
 
 /* ── expander */
 [data-testid="stExpander"] {
-    background: #FFFFFF; border: 1px solid #E8D5C0 !important;
+    background: #FFFFFF !important; border: 1px solid #E8D5C0 !important;
     border-radius: 8px;
 }
-[data-testid="stExpander"] summary { color: #2C1810 !important; }
+[data-testid="stExpander"] summary {
+    color: #2C1810 !important;
+    background: #FFFFFF !important;
+}
+[data-testid="stExpander"] summary:hover {
+    background: #F0E6D8 !important;
+}
+[data-testid="stExpander"] > div {
+    background: #FFFFFF !important;
+}
 
 /* ── 구분선 */
 hr { border-color: #E8D5C0; }
@@ -707,6 +716,7 @@ if page == "🏠 홈":
     logo_src  = img_to_b64("Logo.png")
 
     # ── 히어로 섹션
+    _hero_sub = "Hexasort Puzzle Level Difficulty Design System" if IS_EN else "헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템"
     st.markdown(f"""
 <div style="position:relative;border-radius:20px;overflow:hidden;margin-bottom:24px;
             box-shadow:0 8px 32px rgba(107,58,42,0.20);">
@@ -717,13 +727,10 @@ if page == "🏠 홈":
     <img src="{icon_src}" style="height:88px;border-radius:18px;
          box-shadow:0 4px 16px rgba(0,0,0,0.35);flex-shrink:0;">
     <div style="flex:1;">
-      <img src="{logo_src}" style="height:52px;display:block;margin-bottom:10px;
+      <img src="{logo_src}" style="height:80px;display:block;margin-bottom:10px;
            filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));">
-
       <p style="color:#FBF5EE;font-size:13px;margin:10px 0 0 0;
-                text-shadow:0 1px 3px rgba(0,0,0,0.5);">
-        {"Hexasort Puzzle Level Difficulty Design System" if IS_EN else "헥사소트 퍼즐 레벨 난이도 설계 자동화 시스템"}
-      </p>
+                text-shadow:0 1px 3px rgba(0,0,0,0.5);">{_hero_sub}</p>
     </div>
   </div>
 </div>
@@ -1031,7 +1038,30 @@ from which an **exponential convergence difficulty curve formula** was derived.
             """)
 
     with st.expander("H1 Indicators — Board Difficulty Metrics" if IS_EN else "H1 지표 — 판 모양 난이도 수치"):
-        st.markdown("""
+        if IS_EN:
+            st.markdown("""
+Normalized by market data min/max, then weighted sum → board_score (0~100)
+
+| Indicator | Description | Difficulty Direction |
+|---|---|---|
+| H1-1 | Total grid count | More = Easier |
+| H1-2 | Normal cell open-side sum | Lower = Harder |
+| H1-3 | Normal cell count | Fewer = Harder |
+| H1-4 | Stack+StackLock open-side sum | Lower = Harder |
+| H1-5 | Stack+StackLock count | More = Harder |
+| H1-6 | Total chip colors | More = Harder |
+| H1-7 | Color change complexity | More = Harder |
+| H1-8 | Lock open-side sum | More = Harder |
+| H1-9 | Lock count | More = Harder |
+| H1-10 | StackLock open-side sum | More = Harder |
+| H1-11 | StackLock count | More = Harder |
+| H1-12 | Unlock threshold sum (Level + UnlockLevel) | Higher = Harder |
+| H1-13 | Ads open-side sum | Lower = Harder |
+| H1-14 | Ads count (max 3) | More = Easier |
+| H1-15 | Gimmick open-side sum (Plank/Ice/Grass/Camera) | Lower = Harder |
+            """)
+        else:
+            st.markdown("""
 시장 데이터 min/max로 정규화 후 가중치 합산 → board_score (0~100점)
 
 | 지표 | 설명 | 난이도 방향 |
@@ -1051,10 +1081,22 @@ from which an **exponential convergence difficulty curve formula** was derived.
 | H1-13 | Ads 열린 변 합 | 낮을수록 어려움 |
 | H1-14 | Ads 수 (최대 3 캡) | 많을수록 쉬움 |
 | H1-15 | 기믹 열린 변 합 (Plank/Ice/Grass/Camera) | 낮을수록 어려움 |
-        """)
+            """)
 
     with st.expander("tblStage Parameters" if IS_EN else "tblStage 파라미터"):
-        st.markdown("""
+        if IS_EN:
+            st.markdown("""
+| Parameter | Description |
+|---|---|
+| TotalAllocation | Target score (allocation). Reaching it triggers next color unlock |
+| InitialAvailableColors | Color pool at game start. **Top chip on initial board uses only these colors** |
+| DistinctColorCount | Number of colors per stack. Updated at each threshold |
+| ColorDuplicationRate | Probability of generating identical color stacks. Lower = Harder |
+| ProgressAddNewColor | Color unlock thresholds. Evenly distributed within TotalAllocation. 1:1 with NewColorsMilestones |
+| NewColorsMilestones | Colors added at each threshold. Cannot overlap with InitialAvailableColors |
+            """)
+        else:
+            st.markdown("""
 | 파라미터 | 설명 |
 |---|---|
 | TotalAllocation | 목표 점수(할당량). 채우면 다음 색상 추가 임계값 도달 |
@@ -1063,7 +1105,7 @@ from which an **exponential convergence difficulty curve formula** was derived.
 | ColorDuplicationRate | 완전히 같은 색상 스택 생성 확률. 낮을수록 어려움 |
 | ProgressAddNewColor | 색상 추가 임계값. TotalAllocation 내 균등 분배. NewColorsMilestones와 1:1 |
 | NewColorsMilestones | 임계값 도달 시 추가되는 색상. InitialAvailableColors와 중복 불가 |
-        """)
+            """)
 
     with st.expander("Chip Color Codes" if IS_EN else "칩 색상 코드"):
         cols2 = st.columns(4)
@@ -1097,7 +1139,20 @@ from which an **exponential convergence difficulty curve formula** was derived.
             """)
 
     with st.expander("Difficulty Curve Formula" if IS_EN else "난이도 곡선 공식"):
-        st.markdown("""
+        if IS_EN:
+            st.markdown("""
+**Derived from real market game Lv 1~100 data (SKKU Game Center Lab)**
+
+```
+target(N) = (70 - 52 x e^(-N/90)) + 3.71 + local_var[(N-1) mod 100]
+```
+
+- **Base curve**: Lv1 ≈ 18pt → Lv100 ≈ 48pt → converges to ~74pt
+- **local_var**: 100-value oscillation pattern from market data (repeats every 100 levels)
+- **Integrated difficulty**: board_score x 50% + stack_score x 50% ≈ target(N)
+            """)
+        else:
+            st.markdown("""
 **시장 게임 Lv 1~100 데이터 분석으로 도출 (SKKU 게임센터 랩)**
 
 ```
@@ -1107,7 +1162,7 @@ target(N) = (70 - 52 x e^(-N/90)) + 3.71 + local_var[(N-1) mod 100]
 - **기준선**: Lv1≈18점 → Lv100≈48점 → 최대 ~74점 수렴
 - **local_var**: 시장 데이터에서 추출한 100개 오르내림 패턴 (100레벨 주기 반복)
 - **통합 난이도**: board_score x 50% + stack_score x 50% ≈ target(N)
-        """)
+            """)
 
 
 # ══════════════════════════════════════════════════════
@@ -1154,7 +1209,7 @@ elif page == "📊 2. 난이도 분석":
                 fig_mk.update_layout(
                     height=300,
                     plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-                    font_color=T["text"], xaxis_title="레벨", yaxis_title="값",
+                    font_color=T["text"], xaxis_title="Level" if IS_EN else "레벨", yaxis_title="값",
                     xaxis=dict(gridcolor=T["grid_line"]),
                     yaxis=dict(gridcolor=T["grid_line"]),
                     legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
@@ -1183,7 +1238,7 @@ elif page == "📊 2. 난이도 분석":
     st.markdown("**표시할 곡선 선택**")
     oc1, oc2, oc3, oc4, oc5 = st.columns(5)
     show_target   = oc1.checkbox("Stack Difficulty" if IS_EN else "스택 난이도", True)
-    show_market   = oc2.checkbox("시장 board", True)
+    show_market   = oc2.checkbox("Market Board" if IS_EN else "시장 board", True)
     show_our_intg = oc3.checkbox("우리 통합", True)
     show_our_board= oc4.checkbox("우리 board (정규화)", False)
     show_our_full = oc5.checkbox("우리 board+스택 (정규화)", False)
@@ -1203,7 +1258,7 @@ elif page == "📊 2. 난이도 분석":
             line=dict(color="#58a6ff", width=1.5, dash="dot"), opacity=0.6
         ))
         fig.add_trace(go.Scatter(
-            x=n_all, y=target_curve(n_all), name="스택 난이도",
+            x=n_all, y=target_curve(n_all), name="Stack Difficulty" if IS_EN else "스택 난이도",
             line=dict(color="#58a6ff", width=2), opacity=0.9
         ))
 
@@ -1251,7 +1306,7 @@ elif page == "📊 2. 난이도 분석":
             ))
             fig.add_trace(go.Scatter(
                 x=mk["Stage"], y=mk_sm.tolist(),
-                name="시장 board_score (이동평균)",
+                name="Market board_score (MA)" if IS_EN else "시장 board_score (이동평균)",
                 line=dict(color="#f78166", width=2.5)
             ))
         except Exception as e:
@@ -1270,7 +1325,7 @@ elif page == "📊 2. 난이도 분석":
             ))
             fig.add_trace(go.Scatter(
                 x=x_lv, y=custom_sm.tolist(),
-                name="우리 통합 (이동평균)", line=dict(color="#3fb950", width=3)
+                name="Our Integrated (MA)" if IS_EN else "우리 통합 (이동평균)", line=dict(color="#3fb950", width=3)
             ))
 
         # 우리 게임 board_score 정규화
@@ -1284,7 +1339,7 @@ elif page == "📊 2. 난이도 분석":
             ))
             fig.add_trace(go.Scatter(
                 x=x_lv, y=bs_sm.tolist(),
-                name="우리 board (정규화, 이동평균)", line=dict(color="#d2a8ff", width=2.5)
+                name="Our Board (normalized, MA)" if IS_EN else "우리 board (정규화, 이동평균)", line=dict(color="#d2a8ff", width=2.5)
             ))
 
         # 우리 게임 board+gameplay 정규화 (통합 정규화)
@@ -1298,12 +1353,12 @@ elif page == "📊 2. 난이도 분석":
             ))
             fig.add_trace(go.Scatter(
                 x=x_lv, y=full_sm.tolist(),
-                name="우리 board+스택 (정규화, 이동평균)", line=dict(color="#ffa657", width=2.5)
+                name="Our Board+Stack (normalized, MA)" if IS_EN else "우리 board+스택 (정규화, 이동평균)", line=dict(color="#ffa657", width=2.5)
             ))
 
     fig.update_layout(
         height=440, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-        font_color=T["text"], xaxis_title="레벨", yaxis_title="난이도 점수",
+        font_color=T["text"], xaxis_title="Level" if IS_EN else "레벨", yaxis_title="난이도 점수",
         yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
         xaxis=dict(gridcolor=T["grid_line"]),
         legend=dict(orientation="h", y=1.12, bgcolor="rgba(0,0,0,0)"),
@@ -1336,7 +1391,7 @@ elif page == "📊 2. 난이도 분석":
     st.subheader("📉 Our Difficulty Zone Analysis" if IS_EN else "📉 우리 난이도 구간 분석")
     if True:
         if intg is None:
-            st.warning("사이드바에서 integrated_difficulty.csv를 업로드해주세요.")
+            st.warning("Please upload integrated_difficulty.csv from the sidebar." if IS_EN else "사이드바에서 integrated_difficulty.csv를 업로드해주세요.")
         else:
             # 현재 가중치로 통합 난이도 재계산
             w_b = st.session_state.w_board
@@ -1363,8 +1418,8 @@ elif page == "📊 2. 난이도 분석":
                 integrated_avg   = round(ci.mean(), 1)
                 zones.append({
                     "Zone" if IS_EN else "구간": label,
-                    "판 모양 기여": board_contrib,
-                    "게임 진행 기여": gameplay_contrib,
+                    "Board Contribution" if IS_EN else "판 모양 기여": board_contrib,
+                    "Gameplay Contribution" if IS_EN else "게임 진행 기여": gameplay_contrib,
                     "Integrated Avg" if IS_EN else "통합 평균": integrated_avg,
                     "Board (raw)": round(s2["board_score"].mean(), 1),
                     "Gameplay (raw)": round(s2["gameplay_score"].mean(), 1),
@@ -1381,32 +1436,32 @@ elif page == "📊 2. 난이도 분석":
             for i in range(0, len(intg), zone_size):
                 lo = i+1; hi = min(i+zone_size, len(intg))
                 target_avgs.append(round(sum(tgt(n) for n in range(lo, hi+1))/(hi-lo+1), 1))
-            zdf["스택 난이도"] = target_avgs
+            zdf["Stack Difficulty" if IS_EN else "스택 난이도"] = target_avgs
 
             fig3 = go.Figure()
 
             # 누적 막대: 판 모양 기여 (아래)
             fig3.add_trace(go.Bar(
-                x=zdf["Zone" if IS_EN else "구간"], y=zdf["판 모양 기여"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Board Contribution" if IS_EN else "판 모양 기여"],
                 name=f"판 모양 ({w_b}%)",
                 marker_color="#fa8c16",
-                text=zdf["판 모양 기여"].apply(lambda v: f"{v:.1f}"),
+                text=zdf["Board Contribution" if IS_EN else "판 모양 기여"].apply(lambda v: f"{v:.1f}"),
                 textposition="inside",
                 textfont=dict(size=10, color="white"),
             ))
             # 누적 막대: 게임 진행 기여 (위)
             fig3.add_trace(go.Bar(
-                x=zdf["Zone" if IS_EN else "구간"], y=zdf["게임 진행 기여"],
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Gameplay Contribution" if IS_EN else "게임 진행 기여"],
                 name=f"게임 진행 ({w_g}%)",
                 marker_color="#1890ff",
-                text=zdf["게임 진행 기여"].apply(lambda v: f"{v:.1f}"),
+                text=zdf["Gameplay Contribution" if IS_EN else "게임 진행 기여"].apply(lambda v: f"{v:.1f}"),
                 textposition="inside",
                 textfont=dict(size=10, color="white"),
             ))
             # 통합 평균 꺾은선
             fig3.add_trace(go.Scatter(
                 x=zdf["Zone" if IS_EN else "구간"], y=zdf["Integrated Avg" if IS_EN else "통합 평균"],
-                name="통합 난이도", mode="lines+markers+text",
+                name="Integrated Difficulty" if IS_EN else "통합 난이도", mode="lines+markers+text",
                 line=dict(color="#3fb950", width=2.5),
                 marker=dict(size=7, color="#3fb950"),
                 text=zdf["Integrated Avg" if IS_EN else "통합 평균"].apply(lambda v: f"{v:.1f}"),
@@ -1415,8 +1470,8 @@ elif page == "📊 2. 난이도 분석":
             ))
             # target(N) 기준선
             fig3.add_trace(go.Scatter(
-                x=zdf["Zone" if IS_EN else "구간"], y=zdf["스택 난이도"],
-                name="스택 난이도", mode="lines+markers",
+                x=zdf["Zone" if IS_EN else "구간"], y=zdf["Stack Difficulty" if IS_EN else "스택 난이도"],
+                name="Stack Difficulty" if IS_EN else "스택 난이도", mode="lines+markers",
                 line=dict(color="#f5222d", width=1.5, dash="dot"),
                 marker=dict(size=5, color="#f5222d"),
             ))
@@ -1433,7 +1488,7 @@ elif page == "📊 2. 난이도 분석":
             st.plotly_chart(fig3, use_container_width=True)
 
             # 표 (raw 값 포함)
-            show_cols = ["Zone" if IS_EN else "구간", "Board (raw)", "Gameplay (raw)", "Integrated Avg" if IS_EN else "통합 평균", "스택 난이도"]
+            show_cols = ["Zone" if IS_EN else "구간", "Board (raw)", "Gameplay (raw)", "Integrated Avg" if IS_EN else "통합 평균", "Stack Difficulty" if IS_EN else "스택 난이도"]
             st.dataframe(zdf[show_cols].rename(columns={
                 "Board (raw)": f"판 모양 ({w_b}%)",
                 "Gameplay (raw)": f"게임 진행 ({w_g}%)",
@@ -1456,7 +1511,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
             data = None
             fname_default = "N_001.json"
             if src == "레벨 번호":
-                lv = st.number_input("레벨", 1, 500, 1)
+                lv = st.number_input("Level" if IS_EN else "레벨", 1, 500, 1)
                 fname_default = f"N_{int(lv):03d}.json"
                 data = load_level_local(int(lv))
                 if data is None:
@@ -1491,12 +1546,12 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                         st.rerun()
 
                 h1 = analyze_level(data)
-                st.markdown(f"**보드**: {data['XCells']}×{data['YCells']}")
-                with st.expander("Tile Composition" if IS_EN else "타일 구성"):
+                st.markdown(f"**{'Board' if IS_EN else '보드'}**: {data['XCells']}×{data['YCells']}")
+                with st.expander("Tile Composition" if IS_EN else "Tile Composition" if IS_EN else "타일 구성"):
                     for k,v in h1['tile_counts'].items():
                         if v>0 and k!='Blank':
                             st.markdown(f"- {k}: {v}개")
-                with st.expander("H1 Indicators" if IS_EN else "H1 지표"):
+                with st.expander("H1 Indicators" if IS_EN else "H1 Indicators" if IS_EN else "H1 지표"):
                     for k in ['H1_1','H1_2','H1_3','H1_5','H1_6','H1_7','H1_9','H1_12','H1_14']:
                         st.markdown(f"**{k}**: {h1[k]}")
                 h1e = {k:v for k,v in h1.items() if k!='tile_counts'}
@@ -1504,8 +1559,8 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                 st.download_button("📥 H1 CSV", df_to_csv_bytes(h1df),
                                    "h1_metrics.csv", "text/csv", use_container_width=True)
 
-            show_coord = st.checkbox("좌표 표시", False)
-            show_chips = st.checkbox("Show Chip Colors" if IS_EN else "칩 색상 표시", True)
+            show_coord = st.checkbox("Show Coordinates" if IS_EN else "좌표 표시", False)
+            show_chips = st.checkbox("Show Chip Colors" if IS_EN else "Show Chip Colors" if IS_EN else "칩 색상 표시", True)
             hex_size   = st.slider("헥사 크기", 20, 60, 38)
 
         with vc2:
@@ -1930,7 +1985,7 @@ elif page == "🎲 4. JSON 생성기":
     tbl = st.session_state.tbl_df
 
     if tbl is None:
-        st.warning("사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
+        st.warning("Please upload tblStage_500.xlsx from the sidebar." if IS_EN else "사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
     else:
         # ── 난이도 곡선 미리보기
         st.subheader("📈 Difficulty Curve" if IS_EN else "📈 난이도 곡선")
@@ -1962,7 +2017,7 @@ elif page == "🎲 4. JSON 생성기":
             height=320,
             plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
             font_color=T["text"],
-            xaxis=dict(title="레벨", gridcolor=T["grid_line"]),
+            xaxis=dict(title="Level" if IS_EN else "레벨", gridcolor=T["grid_line"]),
             yaxis=dict(title="난이도", range=[0,105], gridcolor=T["grid_line"]),
             legend=dict(orientation="h", y=1.1, bgcolor="rgba(0,0,0,0)"),
             margin=dict(l=10,r=10,t=30,b=10)
@@ -1972,8 +2027,8 @@ elif page == "🎲 4. JSON 생성기":
         # ── 선택 구간 요약
         sel_arr = sel_diffs
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Levels to Generate" if IS_EN else "생성할 레벨 수", f"{total_lv}개")
-        c2.metric("Avg Difficulty" if IS_EN else "평균 난이도", f"{sum(sel_arr)/len(sel_arr):.1f}")
+        c1.metric("Levels to Generate" if IS_EN else "Levels to Generate" if IS_EN else "생성할 레벨 수", f"{total_lv}개")
+        c2.metric("Avg Difficulty" if IS_EN else "Avg Difficulty" if IS_EN else "평균 난이도", f"{sum(sel_arr)/len(sel_arr):.1f}")
         c3.metric("Min" if IS_EN else "최저", f"{min(sel_arr):.1f} (Lv{start_lv + sel_arr.index(min(sel_arr))})")
         c4.metric("Max" if IS_EN else "최고", f"{max(sel_arr):.1f} (Lv{start_lv + sel_arr.index(max(sel_arr))})")
 
@@ -2071,7 +2126,7 @@ elif page == "🔧 5. 설정":
                 0,20,st.session_state.h1_weights[key],key=f"w_{key}"
             )
             st.session_state.h1_weights[key] = new_w
-            col.caption(f"비율: **{pct}%**")
+            col.caption(f"{"Ratio" if IS_EN else "비율"}: **{pct}%**")
 
         # 실시간 파이 차트
         w_vals = list(st.session_state.h1_weights.values())
@@ -2096,7 +2151,7 @@ elif page == "🔧 5. 설정":
             custom_sm = custom.rolling(5,center=True,min_periods=1).mean()
             fig_prev=go.Figure()
             fig_prev.add_trace(go.Scatter(x=list(range(1,len(intg)+1)),y=custom_sm.tolist(),
-                name='통합 이동평균',line=dict(color='#3fb950',width=2)))
+                name="Integrated MA" if IS_EN else "통합 이동평균",line=dict(color='#3fb950',width=2)))
             fig_prev.add_trace(go.Scatter(x=np.arange(1,501),y=target_curve(np.arange(1,501)),
                 name='스택 난이도',line=dict(color='#58a6ff',width=1.5,dash='dash'),opacity=0.6))
             fig_prev.update_layout(height=280,plot_bgcolor=T["plot_bg"],paper_bgcolor=T["plot_bg"],
@@ -2135,7 +2190,7 @@ elif page == "🔧 5. 설정":
             }
 
         tw_s = sum(st.session_state.stack_weights.values())
-        st.markdown(f"**{"Total weight" if IS_EN else "현재 총합"}**: {tw_s}pt")
+        st.markdown(f"**{"Total weight" if IS_EN else "Total Weight" if IS_EN else "현재 총합"}**: {tw_s}pt")
 
         sc1, sc2 = st.columns(2)
         for i, (key, label, inv, mn, mx) in enumerate(STACK_INFO):
@@ -2146,7 +2201,7 @@ elif page == "🔧 5. 설정":
                 0, 30, st.session_state.stack_weights[key], key=f"sw_{key}"
             )
             st.session_state.stack_weights[key] = new_w
-            col.caption(f"비율: **{pct}%**")
+            col.caption(f"{"Ratio" if IS_EN else "비율"}: **{pct}%**")
 
         # 파이 차트
         sw_vals = list(st.session_state.stack_weights.values())
@@ -2206,7 +2261,7 @@ elif page == "🔧 5. 설정":
             fig_gs = go.Figure()
             fig_gs.add_trace(go.Scatter(
                 x=list(range(1,len(gs_scores)+1)), y=gs_sm.tolist(),
-                name='gameplay_score (이동평균)',
+                name="gameplay_score (MA)" if IS_EN else "gameplay_score (이동평균)",
                 line=dict(color='#1890ff', width=2)
             ))
             fig_gs.add_trace(go.Scatter(
@@ -2228,7 +2283,7 @@ elif page == "🔧 5. 설정":
     with set_tab3:
         tbl = st.session_state.tbl_df
         if tbl is None:
-            st.warning("사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
+            st.warning("Please upload tblStage_500.xlsx from the sidebar." if IS_EN else "사이드바에서 tblStage_500.xlsx를 업로드해주세요.")
         else:
             st.caption("Click cells to edit directly. Download as Excel after modification." if IS_EN else "셀을 클릭해 직접 수정할 수 있습니다. 수정 후 Excel로 다운로드하세요.")
             show_cols = st.multiselect(
@@ -2329,7 +2384,7 @@ elif page == "🗄️ 6. 아카이브":
             st.subheader("📊 Version Comparison (Difficulty Curve)" if IS_EN else "📊 버전 비교 (난이도 곡선)")
             intg = st.session_state.intg_df
             if intg is not None:
-                sel_versions = st.multiselect("비교할 버전 선택 (최대 3개)",
+                sel_versions = st.multiselect("Select versions to compare (max 3)" if IS_EN else "비교할 버전 선택 (최대 3개)",
                     [a['version'] for a in st.session_state.archives],
                     default=[a['version'] for a in st.session_state.archives[-2:]])
                 fig_cmp=go.Figure()
