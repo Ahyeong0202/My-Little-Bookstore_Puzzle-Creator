@@ -554,7 +554,8 @@ def load_intg_local():
 def load_tbl_local():
     if not TBLSTAGE.exists(): return pd.DataFrame()
     df = pd.read_excel(TBLSTAGE, sheet_name='Stage', header=0)
-    return df[df['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
+    mask = df['LevelName'].str.startswith('N_', na=False) | df['LevelName'].str.startswith('N ', na=False)
+    return df[mask].reset_index(drop=True)
 
 @st.cache_data
 def load_level_local(lv):
@@ -617,18 +618,19 @@ with st.sidebar:
         else:
             st.markdown('<span class="file-badge-warn">⚠ 통합 난이도 없음</span>', unsafe_allow_html=True)
 
-    up_tbl = st.file_uploader("tblStage_500.xlsx", type=["xlsx"], key="up_tbl")
+    up_tbl = st.file_uploader("tblStage_500.xlsx" if IS_EN else "tblStage_500.xlsx", type=["xlsx"], key="up_tbl")
     if up_tbl:
         df_raw = pd.read_excel(up_tbl, sheet_name='Stage', header=0)
-        st.session_state.tbl_df = df_raw[df_raw['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
+        mask = df_raw['LevelName'].str.startswith('N_', na=False) | df_raw['LevelName'].str.startswith('N ', na=False)
+        st.session_state.tbl_df = df_raw[mask].reset_index(drop=True)
         st.markdown('<span class="file-badge">✓ tblStage</span>', unsafe_allow_html=True)
     elif st.session_state.tbl_df is None:
         local = load_tbl_local()
-        if not local.empty:
-            st.session_state.tbl_df = local
-            st.markdown('<span class="file-badge">✓ tblStage (로컬)</span>', unsafe_allow_html=True)
-        else:
-            st.markdown('<span class="file-badge-warn">⚠ tblStage 없음</span>', unsafe_allow_html=True)
+    if not local.empty:
+        st.session_state.tbl_df = local
+        st.markdown(f'<span class="file-badge">✓ tblStage ({"GitHub" if IS_EN else "GitHub 자동 로드"})</span>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<span class="file-badge-warn">{"⚠ No tblStage" if IS_EN else "⚠ tblStage 없음"}</span>', unsafe_allow_html=True)
 
     up_market = st.file_uploader("Market Data CSV (Upload New)" if IS_EN else "시장 데이터 CSV (새로 업로드)", type=["csv"], key="up_market")
     if up_market:
@@ -2062,7 +2064,7 @@ elif page == "🎲 4. JSON 생성기":
                     f"({done}/{total})"
                 )
 
-            df_n = tbl[tbl['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
+            df_n = tbl[tbl['LevelName'].str.startswith('N_', na=False) | tbl['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
 
             zip_bytes = generate_range_zip(start_lv, end_lv, df_n, callback=on_progress)
 
