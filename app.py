@@ -626,7 +626,7 @@ with st.sidebar:
         st.markdown('<span class="file-badge">✓ tblStage</span>', unsafe_allow_html=True)
     elif st.session_state.tbl_df is None:
         local = load_tbl_local()
-    if not local.empty:
+    if local is not None and not local.empty:
         st.session_state.tbl_df = local
         st.markdown(f'<span class="file-badge">✓ tblStage ({"GitHub" if IS_EN else "GitHub 자동 로드"})</span>', unsafe_allow_html=True)
     else:
