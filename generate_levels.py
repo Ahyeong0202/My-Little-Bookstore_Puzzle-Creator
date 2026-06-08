@@ -86,29 +86,20 @@ def infer_stack_params(target_score, lv, tbl_row):
          _norm(new_c,0,5)*8+_norm(gimmick,0,0.5)*14)
     actual_stack = round(s/TW_STACK*100,1)
 
-    ALL_COLORS = ['Blue','Red','Yellow','Green','Orange','Purple','White','Black']
+    # ── 색상 목록은 tbl_row에서 그대로 사용 (generate_level에서 이미 설정됨)
     init_colors_raw = str(tbl_row['InitialAvailableColors']) if not pd.isna(tbl_row['InitialAvailableColors']) else 'Blue,Red'
     init_colors_list = [c.strip() for c in init_colors_raw.split(',') if c.strip()]
-    for c in ALL_COLORS:
-        if len(init_colors_list) >= init_c: break
-        if c not in init_colors_list: init_colors_list.append(c)
-    init_colors_list = init_colors_list[:init_c]
 
     new_colors_raw = str(tbl_row['NewColorsMilestones']) if not pd.isna(tbl_row['NewColorsMilestones']) else ''
-    new_colors_list = [c.strip() for c in new_colors_raw.split(',') if c.strip() and c.strip() not in init_colors_list]
-    for c in ALL_COLORS:
-        if len(new_colors_list) >= new_c: break
-        if c not in init_colors_list and c not in new_colors_list: new_colors_list.append(c)
-    new_colors_list = new_colors_list[:new_c]
+    new_colors_list = [c.strip() for c in new_colors_raw.split(',') if c.strip()]
 
-    if new_c > 0:
-        step = alloc/(new_c+1)
-        prog_str = ','.join(str(max(1,int(step*(i+1)))) for i in range(new_c))
-    else:
-        prog_str = ''
+    prog_raw = str(tbl_row['ProgressAddNewColor']) if not pd.isna(tbl_row.get('ProgressAddNewColor', float('nan'))) else ''
+    prog_str = prog_raw if prog_raw and prog_raw != 'nan' else ''
 
-    n_thresholds = new_c+1
-    dist_start = max(1.0,dist_c-1.0)
+    # DistinctColorCount: 구간별 색상 수 증가
+    actual_new_c = len(new_colors_list)
+    n_thresholds = actual_new_c + 1
+    dist_start = max(1.0, dist_c - 1.0)
     dist_vals = [round(dist_start+(dist_c-dist_start)*i/max(n_thresholds-1,1),1) for i in range(n_thresholds)]
     dist_str = ','.join(str(v) for v in dist_vals)
 
@@ -248,21 +239,62 @@ def _build_board(lv, color_ints, init_ints, board_target, rng, total_alloc):
 
     return {'Timestamp':1778220483778+lv,'GameType':0,'GridOrientation':0,'XCells':X,'YCells':Y,'Tiles':tiles}
 
+# ── 색상 분포 설정
+# 초기 등장 색 수: 2→30%, 3→50%, 4→15%, 5→5%
+_INIT_POOL  = [2]*30 + [3]*50 + [4]*15 + [5]*5
+# 합계 색 수 (초기+임계치): 3→30%, 4→40%, 5→20%, 6→10%
+_TOTAL_POOL = [3]*30 + [4]*40 + [5]*20 + [6]*10
+_ALL_COLORS = ['Blue','Red','Yellow','Green','Orange','Purple','White','Black']
+
 def generate_level(lv, tbl_row):
     t = target_diff(lv)
-    # 전체 풀: InitialAvailableColors + NewColorsMilestones
-    # 맨 위 칩(Stacks 마지막)은 InitialAvailableColors만 사용
-    try: init_c=_parse_colors(tbl_row['InitialAvailableColors'])
-    except: init_c=['Blue','Red']
-    try: new_c=_parse_colors(tbl_row['NewColorsMilestones'])
-    except: new_c=[]
-    color_pool=list(dict.fromkeys(init_c+new_c))
-    color_ints=[COLOR_MAP[c] for c in color_pool if c in COLOR_MAP]
-    init_ints=[COLOR_MAP[c] for c in init_c if c in COLOR_MAP]
-    if not color_ints: color_ints=[0,2]
-    if not init_ints: init_ints=color_ints
-    try: total_alloc=int(tbl_row['TotalAllocation']) if not pd.isna(tbl_row['TotalAllocation']) else 100
-    except: total_alloc=100
+
+    # ── 색상 수 샘플링 (lv 기반 시드, random() 기반으로 편향 없음)
+    color_rng = random.Random(lv * 31337)
+    r1 = color_rng.random()
+    if r1 < 0.30:   n_init = 2
+    elif r1 < 0.80: n_init = 3
+    elif r1 < 0.95: n_init = 4
+    else:            n_init = 5
+    r2 = color_rng.random()
+    if r2 < 0.30:   n_total = 3
+    elif r2 < 0.70: n_total = 4
+    elif r2 < 0.90: n_total = 5
+    else:            n_total = 6
+    n_total = max(n_total, n_init + 1)  # 임계치 색 최소 1개
+    n_total = min(n_total, 8)
+
+    # ── 색상 배분: 8가지 중 n_total개 랜덤 선택
+    pool = _ALL_COLORS[:]
+    color_rng.shuffle(pool)
+    chosen     = pool[:n_total]
+    init_c     = chosen[:n_init]
+    new_c_list = chosen[n_init:]
+
+    color_ints = [COLOR_MAP[c] for c in chosen if c in COLOR_MAP]
+    init_ints  = [COLOR_MAP[c] for c in init_c if c in COLOR_MAP]
+    if not color_ints: color_ints = [0, 2]
+    if not init_ints:  init_ints  = color_ints
+
+    try: total_alloc = int(tbl_row['TotalAllocation']) if not pd.isna(tbl_row['TotalAllocation']) else 100
+    except: total_alloc = 100
+
+    # ── tbl_row 업데이트 (infer_stack_params에서 사용)
+    n_new = len(new_c_list)
+    prog_vals = []
+    if n_new > 0:
+        step = total_alloc / (n_new + 1)
+        seen = set()
+        for i in range(1, n_new + 1):
+            v = round(step * i / 10) * 10
+            v = max(10, min(v, total_alloc - 10))
+            while v in seen: v += 10
+            seen.add(v)
+            prog_vals.append(v)
+    tbl_row = tbl_row.copy()
+    tbl_row['InitialAvailableColors'] = ','.join(init_c)
+    tbl_row['NewColorsMilestones']    = ','.join(new_c_list)
+    tbl_row['ProgressAddNewColor']    = ','.join(str(v) for v in prog_vals)
 
     best_data=None; best_bs=50.0; best_error=float('inf')
     for attempt in range(MAX_TRIES):
