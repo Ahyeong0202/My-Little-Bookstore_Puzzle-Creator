@@ -35,6 +35,20 @@ CHIP_HEX   = {0:'#1890FF',1:'#FADB14',2:'#F5222D',3:'#52C41A',
 TILETYPE   = {0:'Normal',1:'Blank',2:'Stack',3:'Lock',4:'Plank',
               5:'Ice',6:'StackLock',7:'Grass',8:'Ads',9:'CameraPicture'}
 TILE_REV   = {v:k for k,v in TILETYPE.items()}
+# ── H1 지표 컬럼 매핑 (market_df 컬럼명 대응)
+MK_COL_MAP = {
+    "H1_1":"H1-1","H1_2":"H1-2","H1_3":"H1-3 ",
+    "H1_4":"H1-4","H1_5":"H1-5","H1_6":"H1-6 ",
+    "H1_7":"H1-7 ","H1_8":"H1-8 ","H1_9":"H1-9 ",
+    "H1_12":"H1-12 ","H1_13":"H1-13 ","H1_14":"H1-14",
+}
+
+# ── H1 지표 난이도 방향 (True = 역수, 높을수록 쉬움)
+W_DIR = {
+    "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
+    "H1_6":False,"H1_7":False,"H1_8":False,"H1_9":False,"H1_10":False,
+    "H1_11":False,"H1_12":False,"H1_13":True,"H1_14":True,"H1_15":True,
+}
 
 GITHUB_REPO  = "Ahyeong0202/My-Little-Bookstore_Puzzle-Creator"
 ARCHIVE_PATH = "data/archives"
@@ -1424,22 +1438,11 @@ elif page == "📊 2. 난이도 분석":
         ))
 
     # 공통 가중치 설정
-    MK_COL_MAP = {
-        "H1_1":"H1-1","H1_2":"H1-2","H1_3":"H1-3 ",
-        "H1_4":"H1-4","H1_5":"H1-5","H1_6":"H1-6 ",
-        "H1_7":"H1-7 ","H1_8":"H1-8 ","H1_9":"H1-9 ",
-        "H1_12":"H1-12 ","H1_13":"H1-13 ","H1_14":"H1-14",
-    }
     W_H1 = st.session_state.get("h1_weights", {
         "H1_1":8,"H1_2":12,"H1_3":10,"H1_4":8,"H1_5":10,
         "H1_6":12,"H1_7":12,"H1_8":8,"H1_9":8,"H1_10":5,
         "H1_11":5,"H1_12":6,"H1_13":4,"H1_14":4,"H1_15":4,
     })
-    W_DIR = {
-        "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
-        "H1_6":False,"H1_7":False,"H1_8":False,"H1_9":False,"H1_10":False,
-        "H1_11":False,"H1_12":False,"H1_13":True,"H1_14":True,"H1_15":True,
-    }
 
     # 시장 board_score
     if show_market and market is not None:
@@ -2073,9 +2076,15 @@ elif page == "🗺️ 3. 판 모양 뷰어":
             }
             h1_now = analyze_level(level_data_now)
 
+            _default_h1 = {
+                'H1_1':8,'H1_2':12,'H1_3':10,'H1_4':8,'H1_5':10,
+                'H1_6':12,'H1_7':12,'H1_8':8,'H1_9':8,'H1_10':5,
+                'H1_11':5,'H1_12':6,'H1_13':4,'H1_14':4,'H1_15':4
+            }
+            _h1_base = st.session_state.get('h1_weights', _default_h1)
             W_H1_now = {
-                key: st.session_state.get(f"w_{key}", st.session_state.h1_weights.get(key, 8))
-                for key in st.session_state.h1_weights
+                key: st.session_state.get(f"w_{key}", _h1_base.get(key, 8))
+                for key in _default_h1
             }
             W_DIR_now = {
                 "H1_1":True,"H1_2":True,"H1_3":True,"H1_4":True,"H1_5":False,
