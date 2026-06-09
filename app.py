@@ -187,6 +187,22 @@ for key, default in {
     if key not in st.session_state:
         st.session_state[key] = default
 
+# ── 앱 시작 시 GitHub 파일 자동 로드 (업로드 없이 사용 가능)
+if st.session_state.tbl_df is None and TBLSTAGE.exists():
+    try:
+        df_auto = pd.read_excel(TBLSTAGE, sheet_name="Stage", header=0)
+        mask = (df_auto["LevelName"].str.startswith("N_", na=False) |
+                df_auto["LevelName"].str.startswith("N ", na=False))
+        st.session_state.tbl_df = df_auto[mask].reset_index(drop=True)
+    except Exception:
+        pass
+
+if st.session_state.intg_df is None and INTG_CSV.exists():
+    try:
+        st.session_state.intg_df = pd.read_csv(INTG_CSV)
+    except Exception:
+        pass
+
 # ── 브라운 라이트 테마 고정
 T = {
     "bg":        "#FBF5EE",
@@ -406,6 +422,9 @@ hr { border-color: #E8D5C0; }
 [data-testid="stCode"] { background: #F0E6D8 !important; color: #2C1810 !important; }
 [data-testid="stCode"] * { color: #2C1810 !important; }
 [data-testid="stCode"] pre { background: #F0E6D8 !important; color: #2C1810 !important; }
+[data-testid="stJson"] { background: #F0E6D8 !important; color: #2C1810 !important; }
+[data-testid="stJson"] * { color: #2C1810 !important; background: #F0E6D8 !important; }
+.stJson { background: #F0E6D8 !important; }
 [data-testid="stCode"] code { background: #F0E6D8 !important; color: #2C1810 !important; }
 [data-testid="stCodeBlock"] { background: #F0E6D8 !important; }
 [data-testid="stCodeBlock"] * { color: #2C1810 !important; background: #F0E6D8 !important; }
@@ -1871,7 +1890,7 @@ elif page == "🗺️ 3. 판 모양 뷰어":
 
             # 원시 JSON
             with st.expander("raw JSON"):
-                st.json(cur_tile)
+                st.code(json.dumps(cur_tile, ensure_ascii=False, indent=2), language="json")
 
             st.markdown("---")
 
