@@ -2325,55 +2325,6 @@ elif page == "🔧 5. 설정":
                               showlegend=False)
         st.plotly_chart(fig_pie,use_container_width=True)
 
-        # 가중치를 적용한 난이도 곡선 미리보기
-        market = st.session_state.market_df
-        if market is not None:
-            st.markdown("**가중치 적용 시 난이도 곡선 미리보기**")
-        
-            # market_df에서 H1 raw값으로 board_score 실시간 재계산
-            mk = market.copy()
-            mk.columns = [str(c).strip() for c in mk.columns]
-            mk = mk[mk["Stage"].apply(lambda x: str(x).strip().lstrip("-").isdigit())].copy()
-            mk["Stage"] = mk["Stage"].astype(int)
-        
-            W_H1_now = st.session_state.h1_weights
-            tw = sum(W_H1_now.values()) or 1
-            score = pd.Series(0.0, index=mk.index)
-            for key, w in W_H1_now.items():
-                col = MK_COL_MAP.get(key)
-                if col and col in mk.columns:
-                    v = pd.to_numeric(mk[col], errors="coerce").fillna(0)
-                    rng = v.max() - v.min()
-                    vn = (v - v.min()) / rng if rng > 0 else pd.Series(0.0, index=mk.index)
-                    score += (1 - vn if W_DIR.get(key, False) else vn) * w
-            mk["board_score_live"] = (score / tw * 100).round(1)
-        
-            bs_sm = mk["board_score_live"].rolling(5, center=True, min_periods=1).mean()
-        
-            fig_prev = go.Figure()
-            fig_prev.add_trace(go.Scatter(
-                x=mk["Stage"].tolist(), y=bs_sm.tolist(),
-                name="board_score (재계산, MA)" if not IS_EN else "board_score (recalc, MA)",
-                line=dict(color='#3fb950', width=2)
-            ))
-            fig_prev.add_trace(go.Scatter(
-                x=np.arange(1, 501).tolist(), y=target_curve(np.arange(1, 501)).tolist(),
-                name='스택 난이도' if not IS_EN else 'Stack Difficulty',
-                line=dict(color='#58a6ff', width=1.5, dash='dash'), opacity=0.6
-            ))
-            fig_prev.update_layout(
-                height=280, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-                font_color=T["text"],
-                xaxis_title='레벨' if not IS_EN else 'Level',
-                xaxis=dict(gridcolor=T["grid_line"]),
-                yaxis=dict(range=[0, 105], gridcolor=T["grid_line"]),
-                legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)'),
-                margin=dict(l=10, r=10, t=30, b=10)
-            )
-            st.plotly_chart(fig_prev, use_container_width=True)
-        else:
-            st.info("시장 데이터 CSV를 사이드바에서 업로드하면 미리보기가 표시됩니다." if not IS_EN else "Upload market data CSV from the sidebar to preview.")
-
         # 가중치 설정 JSON 다운로드
         w_config = {"h1_weights": st.session_state.h1_weights,
                     "w_board": st.session_state.w_board,
@@ -2430,75 +2381,6 @@ elif page == "🔧 5. 설정":
             showlegend=False
         )
         st.plotly_chart(fig_spie, use_container_width=True)
-
-        # 가중치 적용 시 gameplay_score 미리보기
-        intg = st.session_state.intg_df
-        tbl_s = st.session_state.tbl_df
-        if intg is not None and tbl_s is not None:
-            st.markdown("**gameplay_score Preview with Current Weights**" if IS_EN else "**가중치 적용 시 gameplay_score 미리보기**")
-
-            def parse_avg(v):
-                try: return float(str(v).split(',')[0])
-                except: return 0.0
-            def parse_cnt(v):
-                if pd.isna(v): return 0
-                return len([c for c in str(v).split(',') if c.strip()])
-            def _norm(v,lo,hi,inv=False):
-                if hi==lo: return 0.0
-                n=max(0.0,min(1.0,(v-lo)/(hi-lo)))
-                return 1-n if inv else n
-
-            sw = {
-                'alloc':   st.session_state.get('sw_alloc',   st.session_state.stack_weights.get('alloc',   20)),
-                'init_c':  st.session_state.get('sw_init_c',  st.session_state.stack_weights.get('init_c',  12)),
-                'dist_c':  st.session_state.get('sw_dist_c',  st.session_state.stack_weights.get('dist_c',  10)),
-                'dup_r':   st.session_state.get('sw_dup_r',   st.session_state.stack_weights.get('dup_r',    8)),
-                'prog1':   st.session_state.get('sw_prog1',   st.session_state.stack_weights.get('prog1',   10)),
-                'new_c':   st.session_state.get('sw_new_c',   st.session_state.stack_weights.get('new_c',    8)),
-                'gimmick': st.session_state.get('sw_gimmick', st.session_state.stack_weights.get('gimmick', 14)),
-            }
-            tw_sw = sum(sw.values()) or 1
-            df_n_s = tbl_s[tbl_s['LevelName'].str.startswith('N ', na=False)].reset_index(drop=True)
-            gs_scores = []
-            for _, row in df_n_s.iterrows():
-                alloc = float(row['TotalAllocation']) if not pd.isna(row['TotalAllocation']) else 0
-                init_c = parse_cnt(row['InitialAvailableColors'])
-                dist_c = parse_avg(row['DistinctColorCount'])
-                dup_r  = parse_avg(row['ColorDuplicationRate'])
-                prog1  = parse_avg(row['ProgressAddNewColor'])
-                new_c  = parse_cnt(row['NewColorsMilestones'])
-                gim_sum= sum(float(row.get(c,0) or 0) for c in ['GrassCount','WoodCount','IceCount','TurnCount','CameraPictureCount'])
-                gim_r  = gim_sum / max(alloc, 1)
-                s = (_norm(alloc,10,300)*sw['alloc'] +
-                     _norm(init_c,1,5)*sw['init_c'] +
-                     _norm(dist_c,1,4)*sw['dist_c'] +
-                     _norm(dup_r,0.1,0.8,True)*sw['dup_r'] +
-                     _norm(prog1,2,30,True)*sw['prog1'] +
-                     _norm(new_c,0,5)*sw['new_c'] +
-                     _norm(gim_r,0,0.5)*sw['gimmick'])
-                gs_scores.append(round(s/tw_sw*100,1))
-
-            gs_sm = pd.Series(gs_scores).rolling(5,center=True,min_periods=1).mean()
-            fig_gs = go.Figure()
-            fig_gs.add_trace(go.Scatter(
-                x=list(range(1,len(gs_scores)+1)), y=gs_sm.tolist(),
-                name="gameplay_score (MA)" if IS_EN else "gameplay_score (이동평균)",
-                line=dict(color='#1890ff', width=2)
-            ))
-            fig_gs.add_trace(go.Scatter(
-                x=np.arange(1,501), y=target_curve(np.arange(1,501)),
-                name='스택 난이도',
-                line=dict(color='#f5222d', width=1.5, dash='dot'), opacity=0.7
-            ))
-            fig_gs.update_layout(
-                height=280, plot_bgcolor=T["plot_bg"], paper_bgcolor=T["plot_bg"],
-                font_color=T["text"], xaxis_title='레벨',
-                xaxis=dict(gridcolor=T["grid_line"]),
-                yaxis=dict(range=[0,105], gridcolor=T["grid_line"]),
-                legend=dict(orientation='h', y=1.1, bgcolor='rgba(0,0,0,0)'),
-                margin=dict(l=10,r=10,t=30,b=10)
-            )
-            st.plotly_chart(fig_gs, use_container_width=True)
 
     # ── 스택 파라미터 수정
     with set_tab3:
