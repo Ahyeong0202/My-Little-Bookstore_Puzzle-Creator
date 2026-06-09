@@ -525,6 +525,21 @@ section[data-testid="stFileUploaderDropzone"] > div > button {
 /* ── 캡션 */
 [data-testid="stCaptionContainer"] p, .stCaption { color: #7A5C45 !important; }
 
+/* ── selectbox 드롭다운 옵션 리스트 */
+[data-baseweb="popover"] ul li,
+[data-baseweb="popover"] ul li span,
+[data-baseweb="menu"] ul li,
+[data-baseweb="menu"] ul li span,
+[data-baseweb="select"] [role="option"],
+[data-baseweb="select"] [role="option"] span {
+    background-color: #FFFFFF !important;
+    color: #2C1810 !important;
+}
+[data-baseweb="popover"] ul li:hover,
+[data-baseweb="menu"] ul li:hover {
+    background-color: #F0E6D8 !important;
+}
+
 /* ── 마크다운 */
 .stMarkdown p, .stMarkdown li { color: #2C1810; }
 .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 { color: #6B3A2A; }
@@ -1806,7 +1821,8 @@ elif page == "🗺️ 3. 판 모양 뷰어":
 
                     sc1, sc2 = st.columns(2)
                     sc1.download_button("📥 JSON Download" if IS_EN else "📥 JSON 다운로드", json_out,
-                                        save_fname, "application/json", use_container_width=True)
+                    save_fname, "application/json", use_container_width=True,
+                    key="dl_json_view")
 
                     if sc2.button("☁️ GitHub에 저장", use_container_width=True, key="ve_github"):
                         token = st.session_state.github_token
@@ -1974,7 +1990,8 @@ elif page == "🗺️ 3. 판 모양 뷰어":
                 "Tiles": st.session_state.grid_tiles
             }, ensure_ascii=False, indent=2).encode("utf-8")
             st.download_button("📥 JSON Download" if IS_EN else "📥 JSON 다운로드", json_out, fname,
-                               "application/json", use_container_width=True)
+                   "application/json", use_container_width=True,
+                   key="dl_json_edit")
 
         # ── 그리드 미리보기 (좌측)
         with gcol:
