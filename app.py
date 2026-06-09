@@ -425,6 +425,9 @@ hr { border-color: #E8D5C0; }
 [data-testid="stJson"] { background: #F0E6D8 !important; color: #2C1810 !important; }
 [data-testid="stJson"] * { color: #2C1810 !important; background: #F0E6D8 !important; }
 .stJson { background: #F0E6D8 !important; }
+[data-testid="stCode"] { background: #F0E6D8 !important; }
+.highlight { background: #F0E6D8 !important; }
+.highlight * { background: #F0E6D8 !important; color: #2C1810 !important; }
 [data-testid="stCode"] code { background: #F0E6D8 !important; color: #2C1810 !important; }
 [data-testid="stCodeBlock"] { background: #F0E6D8 !important; }
 [data-testid="stCodeBlock"] * { color: #2C1810 !important; background: #F0E6D8 !important; }
